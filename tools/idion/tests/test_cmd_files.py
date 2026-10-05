@@ -208,6 +208,51 @@ class TestAppend:
         assert "idion init" in result.stderr
 
 
+class TestReplace:
+    def test_text_stdin_and_file(self, runner, root, tmp_path):
+        runner.invoke(main, ["create", "user", "-d", "The user."])
+        path = root / "user.md"
+        first = runner.invoke(main, ["replace", "user", "-b", "# Me"])
+        assert first.exit_code == 0, first.output
+        assert first.output == f"{path}\n"
+        assert path.read_text() == "---\ndescription: The user.\n---\n\n# Me\n"
+        second = runner.invoke(main, ["replace", "user", "--body", "-"], input="# Piped\n\nText.\n")
+        assert second.exit_code == 0, second.output
+        assert path.read_text() == "---\ndescription: The user.\n---\n\n# Piped\n\nText.\n"
+        body = tmp_path / "body.md"
+        body.write_text("# From a file\n")
+        third = runner.invoke(main, ["replace", "user", "--body-file", str(body)])
+        assert third.exit_code == 0, third.output
+        assert path.read_text() == "---\ndescription: The user.\n---\n\n# From a file\n"
+
+    @pytest.mark.parametrize("args", [[], ["-b", "x", "--body-file", "body.md"]])
+    def test_exactly_one_body_option(self, runner, root, args):
+        runner.invoke(main, ["create", "user", "-d", "The user."])
+        result = runner.invoke(main, ["replace", "user", *args])
+        assert result.exit_code == 2
+        assert (root / "user.md").read_text().endswith("\n# user\n")
+
+    def test_invalid_description_warns(self, runner, root):
+        (root / "user.md").write_text("---\nowner: me\n---\n")
+        result = runner.invoke(main, ["replace", "user", "-b", "x"])
+        assert result.exit_code == 0
+        assert "warning: description is missing" in result.stderr
+
+    @pytest.mark.parametrize(
+        ("identifier", "message"),
+        [("user", "no context file"), ("teams/", "is a folder")],
+    )
+    def test_errors(self, runner, root, identifier, message):
+        result = runner.invoke(main, ["replace", identifier, "-b", "x"])
+        assert result.exit_code == 1
+        assert message in result.stderr
+
+    def test_missing_root(self, runner, home):
+        result = runner.invoke(main, ["replace", "user", "-b", "x"])
+        assert result.exit_code == 1
+        assert "run 'idion init' first" in result.stderr
+
+
 class TestEdit:
     @pytest.fixture(autouse=True)
     def terminal(self, monkeypatch):
@@ -263,7 +308,17 @@ class TestEdit:
         monkeypatch.setattr(cli_support, "is_interactive", lambda: False)
         result = runner.invoke(main, ["edit", "user"])
         assert result.exit_code == 1
-        assert f"edit needs a terminal; edit the file directly: {root / 'user.md'}" in result.stderr
+        assert (
+            "edit needs a terminal; use 'idion replace' (body) or 'idion update' (description), "
+            f"or edit the file directly: {root / 'user.md'}"
+        ) in result.stderr
+
+    def test_no_terminal_on_a_folder_names_folder_describe(self, runner, root, monkeypatch):
+        runner.invoke(main, ["folder", "describe", "teams/", "-d", "Teams."])
+        monkeypatch.setattr(cli_support, "is_interactive", lambda: False)
+        result = runner.invoke(main, ["edit", "teams/"])
+        assert result.exit_code == 1
+        assert "use 'idion folder describe' (description), or edit the file directly" in result.stderr
 
     @pytest.mark.parametrize(
         ("identifier", "message"),

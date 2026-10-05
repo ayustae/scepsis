@@ -55,4 +55,4 @@ Free Markdown content.
 
 ## What writes preserve
 
-`update`, `append` and `folder describe` change only what they are asked to: comments, key order, quoting, unknown fields and the body (byte-for-byte, including CRLF) are kept. A trailing comment on the changed `description` line is kept, though the spaces before it may change. Files are written atomically (a temporary file renamed over the original) with their permissions kept. A file whose frontmatter can't be parsed is never rewritten: these commands refuse it with a hint to fix it with `idion edit` or by hand.
+`update`, `append`, `replace` and `folder describe` change only what they are asked to: comments, key order, quoting and unknown fields are kept, and so is the body (byte-for-byte, including CRLF) except for the text `append` adds or the body `replace` sets. A trailing comment on the changed `description` line is kept, though the spaces before it may change. Files are written atomically (a temporary file renamed over the original) with their permissions kept. A file whose frontmatter can't be parsed is never rewritten: these commands refuse it with a hint to fix it with `idion edit` or by hand.

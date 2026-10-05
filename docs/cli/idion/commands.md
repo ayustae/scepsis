@@ -1,6 +1,6 @@
 # idion — Commands
 
-Reference for the idion commands on the context tree and its files: `init`, `create`, `show`, `list`, `update`, `append`, `edit`, `move` and `delete`. Folder descriptions are in `folders.md` and validation in `check.md`. Shared conventions (identifiers, text input, output, exit codes, lock) are in `README.md`; the file format is in `files.md`.
+Reference for the idion commands on the context tree and its files: `init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit`, `move` and `delete`. Folder descriptions are in `folders.md` and validation in `check.md`. Shared conventions (identifiers, text input, output, exit codes, lock) are in `README.md`; the file format is in `files.md`.
 
 ## `idion init`
 
@@ -76,6 +76,18 @@ Appends a paragraph to the body of the context file `ID` and prints its path. Th
 
 - `-t`, `--text`: required; `-` reads standard input.
 
+## `idion replace`
+
+```
+idion replace ID (-b TEXT | --body-file PATH)
+```
+
+Replaces the body of the context file `ID` and prints its path. The frontmatter is kept as it is (see `files.md`). The new body is laid out as `create` writes one: a blank line after the frontmatter, then the text with a final line break; an empty text clears the body. Line breaks in the text are converted to the file's own (CRLF files stay CRLF). An unchanged body isn't rewritten. A file with an invalid description can still be changed; the problem is printed as a warning. A file whose frontmatter can't be parsed is refused.
+
+- `-b`, `--body`: the new body; `-` reads standard input.
+- `--body-file`: read the new body from a UTF-8 file.
+- Exactly one of `-b` and `--body-file` is required. A body may not contain NUL characters.
+
 ## `idion edit`
 
 ```
@@ -91,7 +103,7 @@ Opens the context file `ID` in `$VISUAL` or `$EDITOR`, then validates it. With a
 | Changed, the frontmatter can't be parsed | The file is left as saved; an error says to run `idion edit ID` again; exit `1` |
 | Changed, the description is missing or invalid | The errors are listed; exit `1` |
 
-idion never writes, reverts or fixes the edited file. Without a terminal, `edit` fails with `edit needs a terminal; edit the file directly: <path>`.
+idion never writes, reverts or fixes the edited file. Without a terminal, `edit` fails with `edit needs a terminal; use 'idion replace' (body) or 'idion update' (description), or edit the file directly: <path>` (for a folder, it names `idion folder describe`).
 
 ## `idion move`
 

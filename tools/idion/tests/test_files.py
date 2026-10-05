@@ -12,6 +12,8 @@ from idion.files import (
     load_file,
     load_index,
     move_entry,
+    replace_body,
+    replaced_body,
     update_description,
 )
 from idion.identifiers import parse_file_id, parse_folder_id, parse_identifier
@@ -205,6 +207,62 @@ class TestAppendText:
         path, problems = append_text(root, parse_file_id("user"), "More.")
         assert problems == ["description is missing"]
         assert path.read_text() == "---\nowner: me\n---\n\nMore.\n"
+
+
+@pytest.mark.parametrize(
+    ("text", "newline", "expected"),
+    [
+        ("# New", "\n", "\n# New\n"),
+        ("# New\n", "\n", "\n# New\n"),
+        ("A\nB", "\n", "\nA\nB\n"),
+        ("A\r\nB", "\n", "\nA\nB\n"),
+        ("A\nB", "\r\n", "\r\nA\r\nB\r\n"),
+        ("", "\n", ""),
+    ],
+)
+def test_replaced_body(text, newline, expected):
+    assert replaced_body(text, newline) == expected
+
+
+class TestReplaceBody:
+    def test_only_the_body_changes(self, root):
+        (root / "user.md").write_text(RICH)
+        path, problems = replace_body(root, parse_file_id("user"), "# New\n\nText.")
+        assert problems == []
+        assert path.read_text() == RICH.split("---\n\n")[0] + "---\n\n# New\n\nText.\n"
+
+    def test_empty_text_clears_the_body(self, root):
+        (root / "user.md").write_text("---\ndescription: x\n---\n\n# U\n")
+        replace_body(root, parse_file_id("user"), "")
+        assert (root / "user.md").read_text() == "---\ndescription: x\n---\n"
+
+    def test_keeps_crlf(self, root):
+        (root / "user.md").write_bytes(b"---\r\ndescription: x\r\n---\r\n\r\n# U\r\n")
+        replace_body(root, parse_file_id("user"), "A\nB")
+        assert (root / "user.md").read_bytes() == b"---\r\ndescription: x\r\n---\r\n\r\nA\r\nB\r\n"
+
+    def test_unchanged_body_is_not_rewritten(self, root):
+        (root / "user.md").write_text("---\ndescription: x\n---\n\n# U\n")
+        before = (root / "user.md").stat()
+        replace_body(root, parse_file_id("user"), "# U")
+        after = (root / "user.md").stat()
+        assert (before.st_ino, before.st_mtime_ns) == (after.st_ino, after.st_mtime_ns)
+
+    def test_broken_frontmatter_is_refused(self, root):
+        (root / "user.md").write_text("no frontmatter\n")
+        with pytest.raises(IdionError, match="can't be parsed"):
+            replace_body(root, parse_file_id("user"), "New.")
+        assert (root / "user.md").read_text() == "no frontmatter\n"
+
+    def test_invalid_description_is_reported_but_allowed(self, root):
+        (root / "user.md").write_text("---\nowner: me\n---\n\nOld.\n")
+        path, problems = replace_body(root, parse_file_id("user"), "New.")
+        assert problems == ["description is missing"]
+        assert path.read_text() == "---\nowner: me\n---\n\nNew.\n"
+
+    def test_missing_file(self, root):
+        with pytest.raises(IdionError, match="no context file"):
+            replace_body(root, parse_file_id("user"), "New.")
 
 
 class TestFolderIndex:

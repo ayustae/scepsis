@@ -16,6 +16,7 @@ from idion.files import (
     load_file,
     load_index,
     move_entry,
+    replace_body,
     update_description,
 )
 from idion.identifiers import parse_file_id, parse_identifier
@@ -83,13 +84,34 @@ def append(identifier, text):
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument("identifier", metavar="ID")
+@click.option("-b", "--body", metavar="TEXT", help="The new body; '-' reads standard input.")
+@click.option("--body-file", metavar="PATH", help="Read the new body from a file.")
+def replace(identifier, body, body_file):
+    """Replace the body of the context file ID and print its path."""
+    if (body is None) == (body_file is None):
+        raise click.UsageError("give exactly one of -b/--body and --body-file")
+    root = require_root()
+    file_id = parse_file_id(identifier)
+    path, problems = replace_body(root, file_id, read_body(body, body_file, sys.stdin))
+    for problem in problems:
+        warn(problem)
+    click.echo(path)
+
+
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.argument("identifier", metavar="ID")
 def edit(identifier):
     """Open the context file ID (or a FOLDER/'s _index.md) in $VISUAL/$EDITOR, then validate it."""
     root = require_root()
     parsed = parse_identifier(identifier)
     loaded = load_index(root, parsed) if parsed.folder else load_file(root, parsed)
     if not cli_support.is_interactive():
-        raise IdionError(f"edit needs a terminal; edit the file directly: {loaded.path}")
+        commands = (
+            "'idion folder describe' (description)"
+            if parsed.folder
+            else "'idion replace' (body) or 'idion update' (description)"
+        )
+        raise IdionError(f"edit needs a terminal; use {commands}, or edit the file directly: {loaded.path}")
     result = edit_file(parsed, loaded.path)
     for problem in result.warnings:
         warn(problem)

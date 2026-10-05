@@ -8,7 +8,7 @@ Reference documentation for `idion`, the Scepsis user context CLI (`tools/idion/
 | --- | --- |
 | `README.md` | This index, the root command and the conventions shared by all commands |
 | `files.md` | The context tree, context files, folder descriptions (`_index.md`) and the file format |
-| `commands.md` | `idion init`, `create`, `show`, `list`, `update`, `append`, `edit`, `move`, `delete` |
+| `commands.md` | `idion init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit`, `move`, `delete` |
 | `folders.md` | `idion folder describe`, `idion folder show` |
 | `check.md` | `idion check` |
 | `json-output.md` | The JSON shapes printed by `--json`: a stable contract for scripts and agents |
@@ -21,7 +21,7 @@ idion [-h|--help] [-V|--version] COMMAND [ARGS]...
 
 `-V`/`--version` prints `idion <version>`. `-h`/`--help` works on every command and group. Running `idion` or `idion folder` without a subcommand prints its help and exits with `2`.
 
-Commands: `init`, `create`, `show`, `list`, `update`, `append`, `edit`, `move`, `delete` (see `commands.md`), `folder` (see `folders.md`), `check` (see `check.md`).
+Commands: `init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit`, `move`, `delete` (see `commands.md`), `folder` (see `folders.md`), `check` (see `check.md`).
 
 ## Conventions
 

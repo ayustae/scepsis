@@ -10,9 +10,9 @@ Status: implemented (`tools/idion/`). Command reference: `docs/cli/idion/`.
 
 Context files are Markdown files that tell AI models about the user: who they are, their team and neighbouring teams, company documentation grouped by project, and so on. Each file starts with a one-line `description`. An AI model loads **only the descriptions** of all context files (later, through a hook, skill or prompt; see §9) and opens a file only when it needs that piece of context. This keeps the context the AI loads up front small, however large the tree grows.
 
-The files are meant to be opened and edited by **humans and AI agents alike**, with any editor or file tool. The CLI is a convenience layer: creating files, changing descriptions, appending to bodies, listing and showing. Consequently:
+The files are meant to be opened and edited by **humans and AI agents alike**, with any editor or file tool. The CLI is a convenience layer: creating files, changing descriptions, appending to and replacing bodies, listing and showing. Consequently:
 
-- The CLI never imposes a body structure; it changes a body only through `append` and `edit` (§6).
+- The CLI never imposes a body structure; it changes a body only through `append`, `replace` and `edit` (§6).
 - The CLI must tolerate hand edits: extra unknown frontmatter fields, reordered keys, YAML comments and arbitrary body content are all valid and are preserved byte-for-byte.
 - A hand-broken file (invalid YAML, missing description) is reported, not fatal: commands keep working on every other file, and `idion check` lists every problem.
 
@@ -151,6 +151,8 @@ idion list [PREFIX] [OPTIONS]           list identifiers and descriptions (§5)
 
 idion update ID -d DESC                 change a file's description
 idion append ID -t TEXT                 append a paragraph to a file's body ('-' reads stdin)
+idion replace ID -b TEXT                replace a file's body ('-' reads stdin)
+  --body-file PATH                      the new body from a file (instead of -b)
 idion edit ID                           open in $VISUAL/$EDITOR, validate afterwards (FOLDER/: its _index.md)
 
 idion folder describe FOLDER -d DESC    create or update FOLDER/_index.md; creates the folder if missing
@@ -168,13 +170,14 @@ idion delete ID [-f]                    delete a file, or a folder/ with everyth
 
 `folder describe` refuses the root (it has no description) and folder identifiers without the trailing `/`. It creates missing folders; a new `_index.md` gets only the frontmatter (empty body), while an existing one is changed like `update` changes a file. It prints the `_index.md` path. `folder show` prints the `_index.md` like `show` prints a file (same text and JSON output, with `id` set to the folder identifier, e.g. `teams/`); a missing folder or a folder without `_index.md` is an error with a hint to use `folder describe`. An `_index.md` that is a symbolic link is refused.
 
-`edit` follows the chreos edit flow (chreos design §12): unchanged file → its existing problems are reported as warnings, exit `0`; changed and valid → exit `0`; changed but the frontmatter doesn't parse → the file is left exactly as saved, with a hint to run `edit` again, exit `1`; changed with an invalid description → the errors are reported, exit `1`. The CLI never writes, reverts or "fixes" the edited file: idion has no field to bump, so unlike chreos `edit` doesn't write or lock at all. `edit` also accepts a folder identifier (`idion edit teams/`) and then opens the folder's `_index.md`, so a broken folder description can be fixed the same way. Without a terminal it fails with the file's path, so agents can edit the file directly.
+`edit` follows the chreos edit flow (chreos design §12): unchanged file → its existing problems are reported as warnings, exit `0`; changed and valid → exit `0`; changed but the frontmatter doesn't parse → the file is left exactly as saved, with a hint to run `edit` again, exit `1`; changed with an invalid description → the errors are reported, exit `1`. The CLI never writes, reverts or "fixes" the edited file: idion has no field to bump, so unlike chreos `edit` doesn't write or lock at all. `edit` also accepts a folder identifier (`idion edit teams/`) and then opens the folder's `_index.md`, so a broken folder description can be fixed the same way. Without a terminal it fails with a hint naming the commands that make the same changes without an editor (`replace` and `update`, or `folder describe` for a folder) and the file's path.
 
-`update`, `append` and `folder describe` rewrite only what they change (non-destructive frontmatter round-trip, atomic write). A trailing YAML comment on a changed line is kept, though the spaces before it may be realigned. They refuse a file whose frontmatter can't be parsed, with a hint to fix it with `idion edit` or by hand: the CLI never rewrites a file it can't round-trip.
+`update`, `append`, `replace` and `folder describe` rewrite only what they change (non-destructive frontmatter round-trip, atomic write). A trailing YAML comment on a changed line is kept, though the spaces before it may be realigned. They refuse a file whose frontmatter can't be parsed, with a hint to fix it with `idion edit` or by hand: the CLI never rewrites a file it can't round-trip.
 
 - `update` changes only `description`, and also repairs a missing or invalid one. An unchanged value isn't rewritten.
 - `append` trims the body's trailing line breaks, then adds a blank line, the text and a final line break (an empty body becomes `\n<text>\n`, the layout `create` uses). Line breaks in the text are converted to the file's own, so CRLF files stay CRLF. Blank text is refused. A file with an invalid description can still be appended to; the problem is printed as a warning.
-- Like `create`, both print the file's path.
+- `replace` sets the whole body, leaving the frontmatter alone. It takes the body like `create` (`-b TEXT`, `-b -` or `--body-file`; exactly one), lays it out the same way (a blank line after the frontmatter, a final line break; empty text clears the body) and converts line breaks to the file's own. An unchanged body isn't rewritten; an invalid description is a warning, as for `append`. It exists so that agents, which can't use `edit` without a terminal, can reword or restructure a file.
+- Like `create`, all three print the file's path.
 
 `move SRC DST` moves a file to a file or a folder (with everything in it) to a folder, in one atomic rename; it never overwrites, never moves the root or a folder into itself, creates missing parents and leaves emptied folders in place. `delete ID [-f]` deletes a file, or a folder with everything in it. It asks first (`-f` says yes; without a terminal and without `-f` it fails, as in chreos), and a folder holding anything besides its `_index.md` additionally requires `-f`, so a whole subtree is never deleted by just answering a prompt.
 

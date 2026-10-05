@@ -93,9 +93,14 @@ def update_description(root: Path, identifier: Identifier, description: str) -> 
     return loaded.path
 
 
+def _with_newline(text: str, newline: str) -> str:
+    """`text` with every line break converted to `newline`."""
+    return text.replace("\r\n", "\n").replace("\r", "\n").replace("\n", newline)
+
+
 def appended_body(body: str, text: str, newline: str) -> str:
     """`body` without its trailing line breaks, a blank line, then `text` in the file's newlines."""
-    lines = text.replace("\r\n", "\n").replace("\r", "\n").replace("\n", newline)
+    lines = _with_newline(text, newline)
     kept = body.rstrip("\r\n")
     if not kept:
         return f"{newline}{lines}{newline}"
@@ -109,6 +114,23 @@ def append_text(root: Path, identifier: Identifier, text: str) -> tuple[Path, li
         doc = _require_doc(loaded)
         doc.body = appended_body(doc.body, text, doc.newline)
         save(loaded.path, doc)
+    return loaded.path, loaded.problems
+
+
+def replaced_body(text: str, newline: str) -> str:
+    """`text` laid out as `create` writes a body, in the file's newlines."""
+    return _with_newline(_body_text(text), newline)
+
+
+def replace_body(root: Path, identifier: Identifier, text: str) -> tuple[Path, list[str]]:
+    """Replace the body, leaving the frontmatter alone; returns the file's problems for warnings."""
+    with context_lock(root):
+        loaded = load_file(root, identifier)
+        doc = _require_doc(loaded)
+        body = replaced_body(text, doc.newline)
+        if doc.body != body:
+            doc.body = body
+            save(loaded.path, doc)
     return loaded.path, loaded.problems
 
 

@@ -23,6 +23,10 @@ idion folder describe teams/ -d "My team and the other teams in the department."
 idion list --depth 1          # what an AI loads first: '<id> — <description>' lines
 idion show teams/my-team
 idion append user -t "Prefers concise answers."
+idion replace user -b - <<'EOF'   # rewrite the whole body
+# User
+...
+EOF
 idion update user -d "The user: role, background, preferences and working hours."
 idion check                   # validate the whole tree; exit 1 on errors
 ```
