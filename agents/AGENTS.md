@@ -18,6 +18,7 @@
 ```json
 {
   "name": "verification",
+  "version": "0.1.0",
   "description": "What the agent does and when to delegate to it.",
   "model": {
     "default": "anthropic",
@@ -33,6 +34,7 @@
 | **Field** | **Type** | **Required** | **Notes** |
 | --- | --- | --- | --- |
 | `name` | string | yes | Equals the agent's folder name. Pattern `^[a-z0-9]+(-[a-z0-9]+)*$`, at most 64 characters. |
+| `version` | string | yes | The agent's semantic version (`MAJOR.MINOR.PATCH`). Bump it with every change to the agent and add a `### agent <name> <version>` entry to `CHANGELOG.md`. |
 | `description` | string | yes | A single paragraph: what the agent does and when to delegate to it. Assistants use it to decide, so it must be enough on its own. |
 | `model` | object | no | Model per provider: `anthropic`, `openai`, `deepseek` (more may be added), each a model ID as the provider's API names it. `default` names the provider to use when the target assistant can use several (e.g. OpenCode) and only one can be chosen. Without `model`, or without an entry for the target's provider, the assistant's default model is used. |
 | `tools` | list of strings | no | Generic capabilities the agent may use: `read` (read files), `search` (find files and text in them), `shell` (run commands), `edit` (create and change files), `web` (fetch and search the web). Without `tools`, the assistant's defaults apply. |

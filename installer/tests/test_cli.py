@@ -41,6 +41,8 @@ def test_skills_and_agents_for_every_assistant(home, full_repo, capsys):
         ".scepsis/installed.json",
     ]
     out = capsys.readouterr().out
+    assert "skill task 0.1.0 [claude]" in out
+    assert "agent verification 0.1.0 [codex]" in out
     # OpenCode already reads ~/.claude/skills and ~/.agents/skills.
     assert "skip (shared)" in out and ".config/opencode/skills/task" in out
 
@@ -241,7 +243,7 @@ def test_list(home, full_repo, capsys):
     (home / ".claude").mkdir()
     assert run(full_repo, "-l") == 0
     out = capsys.readouterr().out
-    for word in ("claude", "detected", "codex", "chreos", "idion", "task", "context", "verification"):
+    for word in ("claude", "detected", "codex", "chreos", "idion", "task 0.1.0", "context 0.1.0", "verification 0.1.0"):
         assert word in out
     assert sorted(tree(home)) == []
 
@@ -249,4 +251,14 @@ def test_list(home, full_repo, capsys):
 def test_manifest_records_installed_files(home, full_repo):
     run(full_repo, "-a", "claude", "-o", "skills", "-s", "task")
     data = json.loads((home / ".scepsis/installed.json").read_text())
+    entry = data["files"][str(home / ".claude/skills/task/SKILL.md")]
+    assert entry["item"] == "skill task" and entry["version"] == "0.1.0"
     assert list(data["files"]) == [str(home / ".claude/skills/task/SKILL.md")]
+
+
+def test_version_flag(home, full_repo, capsys):
+    full_repo.framework_version("0.4.0")
+    with pytest.raises(SystemExit) as exc:
+        run(full_repo, "-V")
+    assert exc.value.code == 0
+    assert capsys.readouterr().out == f"install.sh {install.VERSION} (Scepsis 0.4.0)\n"

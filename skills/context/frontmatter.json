@@ -1,5 +1,6 @@
 {
   "name": "context",
+  "version": "0.1.0",
   "description": "Keeps durable information about the user and their work — their role and team, other teams and what they own, reference documentation, how things are run, decisions not tied to a single project — in the user's context tree, through the idion CLI. Use when the user says something about their organisation (\"my team is X\", \"so-and-so owns Y\", \"we decided it this way\"), when they say \"remember this\", \"take note of this\" or \"save this\", when a document or conversation turns up something that will still matter in three months, or when context about the user is needed to answer well.",
   "requires": ["idion"],
   "user_invocable": true

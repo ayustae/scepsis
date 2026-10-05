@@ -9,7 +9,7 @@
 
 - `install.sh`: POSIX `sh` wrapper only (no bashisms); it finds `uv` or `python3` and passes all arguments through. Logic goes in `install.py`.
 - `install.py`, by section:
-  - Definitions: `load_items` (with `_check_meta` validation) and `list_tools` read `skills/`, `agents/` and `tools/`.
+  - Definitions: `load_items` (with `_check_meta` validation), `list_tools` and `framework_version` read `skills/`, `agents/`, `tools/` and `VERSION`.
   - Assistants: `config_dirs` (the only place with OS-specific paths), `detect_assistants`, `targets` (where skills/agents go per scope), `opencode_shared_skill_dirs`.
   - Rendering: `render_skill`, `render_agent`, `agent_filename`. YAML values are written with `_yaml_str` (JSON strings), TOML with `_toml_str`/`_toml_text`; never interpolate raw text.
   - Writing: `write_file` (atomic) and `Manifest` (`~/.scepsis/installed.json`).
@@ -20,6 +20,8 @@
 - Standard library only, Python >= 3.10 (no `tomllib`, no 3.11+ syntax), and no POSIX-only calls, so a future Windows wrapper can reuse `install.py`.
 - Never delete files, and never write a destination without `Manifest.decide`: files the installer did not write, or that the user edited, are left alone unless `--force` is given.
 - A new frontmatter field in `skills/` or `agents/` must be handled here (`_check_meta`, then `render_skill`/`render_agent`), and the format tables in `docs/usage/installation.md` and `agents/AGENTS.md` updated.
+- Every skill and agent needs a semver `version` (checked by `_check_meta`). The installer's own version is the `VERSION` constant, kept equal to `pyproject.toml`; bump both together (see the versioning rules in the root `AGENTS.md`).
+- `tests/test_repository.py` checks the real repository: `VERSION` is semver, the installer versions match, and every current component version has its `CHANGELOG.md` heading.
 - A new assistant needs `ASSISTANTS`, `config_dirs`, `targets`, the rendering functions, tests and the user guide.
 - Use a Test Driven Development (TDD) approach, as in `tools/AGENTS.md`: failing test first, minimum implementation, then refactor.
 - Tests: `tests/conftest.py` provides `repo` (a fake repository built with `RepoBuilder`) and `home` (isolated `HOME`, assistant env vars removed, `PATH` holding only `home.bin`). Fake commands (`fake_command`, `fake_uv`) can only use shell built-ins or absolute paths, since nothing else is on `PATH`. CLI tests call `install.main([...], repo=...)` and check files with `tree()`.

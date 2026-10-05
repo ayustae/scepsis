@@ -17,6 +17,7 @@
 ```json
 {
   "name": "task",
+  "version": "0.1.0",
   "description": "What the skill does and when to use it, including the phrases that should trigger it.",
   "requires": ["chreos"],
   "user_invocable": true
@@ -26,6 +27,7 @@
 | **Field** | **Type** | **Required** | **Notes** |
 | --- | --- | --- | --- |
 | `name` | string | yes | Equals the skill's folder name. Pattern `^[a-z0-9]+(-[a-z0-9]+)*$`, at most 64 characters. |
+| `version` | string | yes | The skill's semantic version (`MAJOR.MINOR.PATCH`). Bump it with every change to the skill and add a `### skill <name> <version>` entry to `CHANGELOG.md`. |
 | `description` | string | yes | A single paragraph: what the skill does and when to use it, with trigger phrases. Assistants use it to decide whether to load the skill, so it must be enough on its own. |
 | `requires` | list of strings | no | External commands the skill runs, which must be on `PATH`. The installer can check them and map them to the target assistant's tool permissions. Default: `[]`. |
 | `user_invocable` | boolean | no | Whether the user can invoke the skill directly as a command (e.g. `/task`). Default: `true`. |

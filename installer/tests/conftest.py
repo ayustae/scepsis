@@ -12,12 +12,16 @@ class RepoBuilder:
         self.root = root
 
     def skill(self, name, body="# Skill\n\nDo it.\n", **meta):
-        meta = {"name": name, "description": f"The {name} skill.", **meta}
+        meta = {"name": name, "description": f"The {name} skill.", "version": "0.1.0", **meta}
         return self._item("skills", "SKILL.md", name, meta, body)
 
     def agent(self, name, body="# Agent\n\nCheck it.\n", **meta):
-        meta = {"name": name, "description": f"The {name} agent.", **meta}
+        meta = {"name": name, "description": f"The {name} agent.", "version": "0.1.0", **meta}
         return self._item("agents", "AGENT.md", name, meta, body)
+
+    def framework_version(self, version):
+        self.root.mkdir(parents=True, exist_ok=True)
+        (self.root / "VERSION").write_text(version + "\n")
 
     def tool(self, name):
         folder = self.root / "tools" / name

@@ -22,12 +22,14 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+VERSION = "0.1.0"  # the installer's own version; keep it equal to pyproject.toml
 REPO = Path(__file__).resolve().parent.parent
 
 ASSISTANTS = ("claude", "codex", "opencode")
 COMPONENTS = ("tools", "skills", "agents")
 CAPABILITIES = ("read", "search", "shell", "edit", "web")
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 # Which provider's model entry each assistant uses (agents' `model` field).
 PROVIDER = {"claude": "anthropic", "codex": "openai"}
@@ -60,6 +62,14 @@ class Item:
     meta: dict
     body: str
 
+    @property
+    def version(self) -> str:
+        return self.meta["version"]
+
+    @property
+    def label(self) -> str:
+        return f"{self.kind[:-1]} {self.name}"
+
 
 def _check_meta(folder: str, meta: object) -> str | None:
     """The first problem with a frontmatter, or None."""
@@ -83,6 +93,9 @@ def _check_meta(folder: str, meta: object) -> str | None:
     model = meta.get("model", {})
     if not isinstance(model, dict) or not all(isinstance(v, str) for v in model.values()):
         return "model must be an object of provider → model ID"
+    version = meta.get("version")
+    if not isinstance(version, str) or not SEMVER_RE.match(version):
+        return "version must be a semantic version (MAJOR.MINOR.PATCH)"
     return None
 
 
@@ -109,6 +122,14 @@ def load_items(repo: Path, kind: str) -> tuple[list[Item], dict[str, str]]:
         body = body_path.read_text(encoding="utf-8")
         items.append(Item(kind, folder.name, meta, body))
     return items, errors
+
+
+def framework_version(repo: Path) -> str | None:
+    """The Scepsis framework version, from the root VERSION file."""
+    try:
+        return (repo / "VERSION").read_text(encoding="utf-8").strip() or None
+    except OSError:
+        return None
 
 
 def list_tools(repo: Path) -> list[str]:
@@ -296,22 +317,29 @@ def write_file(path: Path, content: str) -> None:
 
 
 class Manifest:
-    """The files this installer wrote, with the hash of what it wrote.
+    """The files this installer wrote: the hash of what it wrote, and which item
+    and version it was.
 
     A file is only replaced when it is ours and unchanged since; an unreadable
-    manifest makes every existing file count as foreign.
+    manifest makes every existing file count as foreign. Version 1 manifests
+    (path → hash) are still read.
     """
 
     def __init__(self, path: Path):
         self.path = path
-        self.files: dict[str, str] = {}
+        self.files: dict[str, dict] = {}
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
             files = data.get("files", {}) if isinstance(data, dict) else {}
-            if isinstance(files, dict):
-                self.files = {k: v for k, v in files.items() if isinstance(v, str)}
         except (OSError, ValueError):
-            pass
+            return
+        if not isinstance(files, dict):
+            return
+        for dest, entry in files.items():
+            if isinstance(entry, str):
+                entry = {"sha256": entry}
+            if isinstance(entry, dict) and isinstance(entry.get("sha256"), str):
+                self.files[dest] = entry
 
     def decide(self, dest: Path, content: str, force: bool) -> str:
         current = _file_digest(dest)
@@ -324,13 +352,18 @@ class Manifest:
         recorded = self.files.get(str(dest))
         if recorded is None:
             return "skip-exists"
-        return "update" if recorded == current else "skip-modified"
+        return "update" if recorded["sha256"] == current else "skip-modified"
 
-    def record(self, dest: Path, content: str) -> None:
-        self.files[str(dest)] = _digest(content)
+    def record(self, dest: Path, content: str, item: str | None = None, version: str | None = None) -> None:
+        entry = {"sha256": _digest(content)}
+        if item:
+            entry["item"] = item
+        if version:
+            entry["version"] = version
+        self.files[str(dest)] = entry
 
     def save(self) -> None:
-        write_file(self.path, json.dumps({"version": 1, "files": self.files}, indent=2) + "\n")
+        write_file(self.path, json.dumps({"version": 2, "files": self.files}, indent=2) + "\n")
 
 
 # --- Command line -------------------------------------------------------------------
@@ -354,7 +387,7 @@ def _split(values: list[str] | None) -> list[str] | None:
     return [v.strip() for value in values for v in value.split(",") if v.strip()]
 
 
-def _parser() -> argparse.ArgumentParser:
+def _parser(framework: str) -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="install.sh",
         description="Install the Scepsis tools, skills and agents. Existing files are "
@@ -377,6 +410,7 @@ def _parser() -> argparse.ArgumentParser:
     add("-n", "--dry-run", action="store_true", help="show what would happen, write nothing")
     add("-f", "--force", action="store_true", help="overwrite existing files and reinstall tools")
     add("-l", "--list", action="store_true", help="show detected assistants and installable items")
+    add("-V", "--version", action="version", version=f"%(prog)s {VERSION} (Scepsis {framework})")
     return p
 
 
@@ -408,8 +442,8 @@ def _list(skills: list[Item], agents: list[Item], tools: list[str]) -> None:
         state = "detected" if a in detected else "not found"
         print(f"  {a:<9} {state:<10} {_home(dirs[a])}")
     print("Tools:  " + (", ".join(tools) or "none"))
-    print("Skills: " + (", ".join(i.name for i in skills) or "none"))
-    print("Agents: " + (", ".join(i.name for i in agents) or "none"))
+    print("Skills: " + (", ".join(f"{i.name} {i.version}" for i in skills) or "none"))
+    print("Agents: " + (", ".join(f"{i.name} {i.version}" for i in agents) or "none"))
 
 
 def _install_tools(repo: Path, names: list[str], force: bool, dry_run: bool) -> tuple[int, list[str]]:
@@ -458,19 +492,17 @@ def _install_items(
                 folder = where[assistant].skills / item.name
                 dest = folder / "SKILL.md"
                 content = render_skill(assistant, item)
-                label = f"skill {item.name}"
                 # OpenCode also reads the shared dirs: a second copy would clash.
                 if assistant == "opencode" and any(
                     d / item.name in written or (d / item.name).exists() for d in shared_dirs
                 ):
-                    print(f"  {LABELS['skip-shared']:<16} {label} [{assistant}] → {_home(folder)}")
+                    print(f"  {LABELS['skip-shared']:<16} {item.label} {item.version} [{assistant}] → {_home(folder)}")
                     continue
             else:
                 dest = where[assistant].agents / agent_filename(assistant, item.name)
                 content = render_agent(assistant, item)
-                label = f"agent {item.name}"
             action = manifest.decide(dest, content, force)
-            print(f"  {LABELS[action]:<16} {label} [{assistant}] → {_home(dest)}")
+            print(f"  {LABELS[action]:<16} {item.label} {item.version} [{assistant}] → {_home(dest)}")
             if action not in WRITES and action != "unchanged":
                 continue
             if action in WRITES:
@@ -478,16 +510,16 @@ def _install_items(
             if not dry_run:
                 if action in WRITES:
                     write_file(dest, content)
-                manifest.record(dest, content)
+                manifest.record(dest, content, item.label, item.version)
             for command in item.meta.get("requires", []):
                 missing = command not in installed_tools and not shutil.which(command)
-                if missing and (label, command) not in warned:
-                    warned.add((label, command))
-                    _err(f"warning: {label} requires '{command}', which is not on PATH")
+                if missing and (item.label, command) not in warned:
+                    warned.add((item.label, command))
+                    _err(f"warning: {item.label} requires '{command}', which is not on PATH")
 
 
 def main(argv: list[str] | None = None, repo: Path = REPO) -> int:
-    parser = _parser()
+    parser = _parser(framework_version(repo) or "unknown")
     args = parser.parse_args(argv)
 
     skills, skill_errors = load_items(repo, "skills")

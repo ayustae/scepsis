@@ -16,6 +16,7 @@ def test_loads_skills_and_agents_sorted_by_name(repo):
     assert errors == {}
     assert [s.name for s in skills] == ["context", "task"]
     assert skills[1].meta["requires"] == ["chreos"]
+    assert skills[1].version == "0.1.0"
     assert skills[1].body == "# Skill\n\nDo it.\n"
     assert [a.name for a in agents] == ["verification"]
 
@@ -40,6 +41,9 @@ def test_folders_without_definition_are_ignored(repo):
         ({"name": "x", "description": "d", "user_invocable": "yes"}, "user_invocable"),
         ({"name": "x", "description": "d", "tools": ["fly"]}, "tools"),
         ({"name": "x", "description": "d", "model": "gpt"}, "model"),
+        ({"name": "x", "description": "d"}, "version"),
+        ({"name": "x", "description": "d", "version": "1.0"}, "version"),
+        ({"name": "x", "description": "d", "version": 1}, "version"),
     ],
 )
 def test_invalid_frontmatter_is_reported_not_loaded(repo, meta, problem):
@@ -78,3 +82,13 @@ def test_real_repository_definitions_are_valid():
         assert errors == {}
         assert items
     assert install.list_tools(install.REPO) == ["chreos", "idion"]
+
+
+def test_framework_version(repo):
+    repo.framework_version("1.2.3")
+    assert install.framework_version(repo.root) == "1.2.3"
+
+
+def test_framework_version_missing(repo):
+    repo.root.mkdir(parents=True)
+    assert install.framework_version(repo.root) is None

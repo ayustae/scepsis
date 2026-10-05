@@ -1,5 +1,6 @@
 {
   "name": "verification",
+  "version": "0.1.0",
   "description": "Verifies, against the real state of the system, that a finished chreos task is done and that what was done is what was asked, and returns a short verdict per acceptance criterion without fixing anything. Run it before closing a task as done, giving it the task (PROJECT/NAME) and what is claimed to be done.",
   "model": {
     "default": "anthropic",

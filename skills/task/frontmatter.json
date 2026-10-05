@@ -1,5 +1,6 @@
 {
   "name": "task",
+  "version": "0.1.0",
   "description": "Defines, breaks down and routes tasks before they are executed — observable goal, acceptance criteria and who executes each piece — and keeps the decisions the user has to take apart from them, recording both with the chreos CLI. Also drives a task's lifecycle: opening it to work on, recording progress, verifying and closing it. Use when the user says \"we need to do X\", \"note this task down\", \"break this down\", \"where do I start\", \"what's next\", when a choice has to be made before work can go on, or when starting or finishing work on a task.",
   "requires": ["chreos"],
   "user_invocable": true

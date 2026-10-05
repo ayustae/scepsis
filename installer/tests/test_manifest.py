@@ -44,11 +44,17 @@ def test_own_file_edited_by_the_user_is_skipped_unless_forced(tmp_path):
 def test_manifest_round_trip(tmp_path):
     path = tmp_path / "sub" / "m.json"
     m = install.Manifest(path)
-    m.record(tmp_path / "a", "v1")
+    m.record(tmp_path / "a", "v1", item="skill task", version="0.1.0")
     m.save()
     data = json.loads(path.read_text())
-    assert data["version"] == 1
-    assert list(data["files"]) == [str(tmp_path / "a")]
+    assert data["version"] == 2
+    assert data["files"] == {
+        str(tmp_path / "a"): {
+            "sha256": install._digest("v1"),
+            "item": "skill task",
+            "version": "0.1.0",
+        }
+    }
 
     again = install.Manifest(path)
     install.write_file(tmp_path / "a", "v1")
@@ -69,3 +75,12 @@ def test_write_file_is_atomic_and_creates_parents(tmp_path):
     install.write_file(dest, "hello")
     assert dest.read_text() == "hello"
     assert [p.name for p in dest.parent.iterdir()] == ["f.md"]
+
+
+def test_version_1_manifest_is_still_read(tmp_path):
+    path = tmp_path / "m.json"
+    dest = tmp_path / "a"
+    install.write_file(dest, "v1")
+    path.write_text(json.dumps({"version": 1, "files": {str(dest): install._digest("v1")}}))
+    m = install.Manifest(path)
+    assert m.decide(dest, "v2", force=False) == "update"

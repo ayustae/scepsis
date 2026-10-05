@@ -16,7 +16,7 @@ This installs the `chreos` and `idion` CLIs, plus the skills and agents for ever
 
 ## Documentation
 
-See [`docs/`](docs/README.md): the system designs and the [chreos command reference](docs/cli/chreos/README.md).
+See [`docs/`](docs/README.md): the system designs and the [chreos command reference](docs/cli/chreos/README.md). What changed in each version is in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 

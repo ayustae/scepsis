@@ -42,7 +42,7 @@ OpenCode also reads skills from `.claude/skills/` and `.agents/skills/`. When a 
 
 ## Existing files are never modified
 
-Every file the installer writes is recorded, with a hash of its content, in `~/.scepsis/installed.json`. For each destination file:
+Every file the installer writes is recorded in `~/.scepsis/installed.json`, with a hash of its content and the item and version it came from. For each destination file:
 
 | **Situation** | **Action** |
 | --- | --- |
@@ -69,8 +69,11 @@ Each list option takes comma-separated values and can be repeated (`-a claude -a
 | `-c, --config-dir ASSISTANT=DIR` | Use `DIR` as that assistant's config dir (repeatable). For `codex` this moves agents only: Codex reads user skills from `~/.agents/skills` |
 | `-n, --dry-run` | Show what would be done; write nothing |
 | `-f, --force` | Overwrite existing files and reinstall tools already on `PATH` |
-| `-l, --list` | Show detected assistants and installable items, then exit |
+| `-l, --list` | Show detected assistants and installable items (with their versions), then exit |
+| `-V, --version` | Show the installer and Scepsis framework versions |
 | `-h, --help` | Show the options |
+
+Each output line shows the action, the item and its version, the assistant and the destination, e.g. `install  skill task 0.1.0 [claude] → ~/.claude/skills/task/SKILL.md`. Versions are not written into the assistants' files.
 
 Exit status: `0` on success, `1` when something failed (a tool install, an invalid definition), `2` on a usage error. Each failure is reported and the rest still installs.
 
