@@ -8,7 +8,11 @@
 
 ## Getting started
 
-Install and initialize `chreos` as described in [`tools/chreos/README.md`](tools/chreos/README.md).
+```sh
+./installer/install.sh
+```
+
+This installs the `chreos` and `idion` CLIs, plus the skills and agents for every AI assistant it finds (Claude Code, Codex, OpenCode), without modifying existing files. Options are described in the [installation guide](docs/usage/installation.md). Then initialize `chreos` as described in [`tools/chreos/README.md`](tools/chreos/README.md).
 
 ## Documentation
 

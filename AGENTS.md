@@ -17,6 +17,7 @@
 | `agents/` | Default agent definitions for installing in the framework |
 | `tools/` | Default tool definitions available in the framework |
 | `templates/` | Template definitions for the markdown files used in the framework |
+| `installer/` | Installer of tools, skills and agents for each AI assistant (`install.sh` → `install.py`) |
 
 ## Rules and conventions
 

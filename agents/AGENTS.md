@@ -11,7 +11,7 @@
 - Each agent has a generalized frontmatter in JSON format in a file called `frontmatter.json` within its folder.
 - Agents are installed outside this repository, so an agent must be self-contained: it must not reference repository paths (`docs/`, `tools/`, …), nor assume direct access to the tools' data folders (e.g. `~/.scepsis/`). It works through the tools' CLIs and points to their built-in `--help` for details.
 - Agents are agent-agnostic: the same definition is installed into any supported AI assistant (Claude Code, OpenAI Codex, DeepSeek-based tools, OpenCode, …). Options that differ per assistant or provider, such as the model, live in the frontmatter, keyed by provider.
-- When an agent is installed, the installer combines the frontmatter and the markdown, adapting the former to the target AI assistant format. This is **NOT** in scope here.
+- When an agent is installed, the installer (`installer/install.py`) combines the frontmatter and the markdown, adapting the former to the target AI assistant format (see `docs/usage/installation.md`). A new frontmatter field must be handled there too (validation in `_check_meta`, rendering in `render_agent`).
 
 # Generalized frontmatter schema
 
@@ -38,13 +38,13 @@
 | `tools` | list of strings | no | Generic capabilities the agent may use: `read` (read files), `search` (find files and text in them), `shell` (run commands), `edit` (create and change files), `web` (fetch and search the web). Without `tools`, the assistant's defaults apply. |
 | `requires` | list of strings | no | External commands the agent runs, which must be on `PATH`. Default: `[]`. |
 
-## Mapping to assistants (informative)
+## Mapping to assistants
 
-The installer is out of scope; this is how the fields are meant to map:
+How `installer/install.py` maps the fields:
 
-| **Field** | **Claude Code** | **OpenCode** | **Other assistants** |
+| **Field** | **Claude Code** | **OpenCode** | **Codex** |
 | --- | --- | --- | --- |
-| `model` | The `anthropic` ID (Claude Code also accepts aliases such as `sonnet`) | `<provider>/<id>` from the `default` provider, e.g. `anthropic/claude-sonnet-5-5` | The entry of the assistant's provider (e.g. `openai` for Codex) |
-| `tools` | `read` → `Read`; `search` → `Grep`, `Glob`; `shell` → `Bash`; `edit` → `Edit`, `Write`; `web` → `WebFetch`, `WebSearch` | Capabilities not listed are denied in `permission` (e.g. no `edit` → `edit: deny`) | The closest equivalent permissions |
+| `model` | The `anthropic` ID | `<provider>/<id>` from the `default` provider, e.g. `anthropic/claude-sonnet-5-5` | The `openai` ID |
+| `tools` | `read` → `Read`; `search` → `Grep`, `Glob`; `shell` → `Bash`; `edit` → `Edit`, `Write`; `web` → `WebFetch`, `WebSearch` | Capabilities not listed are denied in `permission` (`read` → `read`; `search` → `grep`, `glob`, `list`; `shell` → `bash`; `edit` → `edit`; `web` → `webfetch`, `websearch`) | `sandbox_mode`: `workspace-write` with `edit`, else `read-only` |
 
 Model IDs were checked against each provider's documentation on 2026-10-05; review them when providers release new models.

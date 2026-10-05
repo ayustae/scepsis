@@ -10,7 +10,7 @@
 - Each skill is defined in a file called `SKILL.md` **without frontmatter** within its folder.
 - Each skill has a generalized frontmatter in JSON format in a file called `frontmatter.json` within its folder.
 - Skills are installed outside this repository, so a skill must be self-contained: it must not reference repository paths (`docs/`, `tools/`, …), nor assume direct access to the tools' data folders (e.g. `~/.scepsis/`). It works through the tools' CLIs and points to their built-in `--help` for details.
-- When a skill is installed, the installer combines the frontmatter and the markdown, adapting the former to the target AI assistant format. This is **NOT** in scope here.
+- When a skill is installed, the installer (`installer/install.py`) combines the frontmatter and the markdown, adapting the former to the target AI assistant format (see `docs/usage/installation.md`). A new frontmatter field must be handled there too (validation in `_check_meta`, rendering in `render_skill`).
 
 # Generalized frontmatter schema
 

@@ -56,9 +56,11 @@ uv run pytest
 Install the `idion` command for the current user (from the repository root):
 
 ```sh
-uv tool install ./tools/idion
+./installer/install.sh -o tools -t idion    # or: uv tool install ./tools/idion
 idion --version
 ```
+
+The installer skips `idion` when it is already on `PATH`; add `-f` to upgrade it from this checkout. See `docs/usage/installation.md`.
 
 For development, `uv run idion` runs it from the source tree without installing.
 
