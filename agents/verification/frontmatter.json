@@ -1,0 +1,12 @@
+{
+  "name": "verification",
+  "description": "Verifies, against the real state of the system, that a finished chreos task is done and that what was done is what was asked, and returns a short verdict per acceptance criterion without fixing anything. Run it before closing a task as done, giving it the task (PROJECT/NAME) and what is claimed to be done.",
+  "model": {
+    "default": "anthropic",
+    "anthropic": "claude-sonnet-5-5",
+    "openai": "gpt-6.1-sol",
+    "deepseek": "deepseek-v4-pro"
+  },
+  "tools": ["read", "search", "shell"],
+  "requires": ["chreos"]
+}

@@ -207,16 +207,23 @@ Only when the user asks to start one.
 4. Record progress, findings and hand-off context as you go:
    `chreos task notes append NAME -N "…"`. Notes are what lets someone else (or
    you, in another session) pick the task up.
-5. **Verify each acceptance criterion** and record how with
-   `chreos task notes append NAME -N "Verified: <criterion> — <how>"`. Then
-   tick the verified ones by their position in `chreos task ac show NAME`:
-   `chreos task ac check NAME 1 3`. Never use `chreos task ac replace` for
-   this: it rewrites the list with every criterion unchecked.
+5. **Verify each acceptance criterion.** If your assistant has the
+   `verification` agent, delegate to it: give it the task (`PROJECT/NAME`) and
+   what you claim is done. It checks the real state and answers with a verdict
+   per criterion, numbered as `chreos task ac show NAME` lists them. Without
+   the agent, run the same two checks yourself: is it done (against the real
+   state, not your summary), and is it what was asked. Record the evidence with
+   `chreos task notes append NAME -N "Verified: <criterion> — <how>"`, then tick
+   only the verified criteria: `chreos task ac check NAME 1 3`. Never use
+   `chreos task ac replace` for this: it rewrites the list with every criterion
+   unchecked.
 
 ## Step 7 — Closing
 
-1. Verify the work against every acceptance criterion. Do not tick what was not
-   checked.
+1. Verify the work against every acceptance criterion (Step 6, with the
+   `verification` agent when available). Do not tick what was not checked. If
+   the verdict is `DOES NOT MATCH` or `DONE BUT NOT WHAT WAS ASKED`, report it to
+   the user and do not close the task.
 2. Close it:
 
    ```sh
