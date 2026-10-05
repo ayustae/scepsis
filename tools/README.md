@@ -7,3 +7,4 @@ Tools available for the Scepsis framework.
 | **Name** | **Folder** | **Language** | **Purpose** |
 | --- | --- | --- | --- |
 | **chreos** | `chreos/` | Python | Task, project and decision management CLI |
+| **idion** | `idion/` | Python | User context management CLI |
