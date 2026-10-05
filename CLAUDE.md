@@ -1,0 +1,3 @@
+# Scepsis
+
+@../AGENTS.md
