@@ -71,4 +71,4 @@ Suggested body sections, used by the section commands: `## Description`, `## Acc
 
 ## Decision files (`decisions/<name>.md`)
 
-Additional fields: `project` (cache) and `dependencies` (item references). `status`: `pending` (default) or `decided`. The body is free-form after the heading and summary.
+Additional fields: `project` (cache) and `dependencies` (item references). `status`: `pending` (default) or `decided`. Suggested body: `# <title>`, the summary, then `## Description` (used by `chreos decision description`) for the context, the options considered, the recommendation and the outcome, in `###` subsections. Everything else in the body is free-form.

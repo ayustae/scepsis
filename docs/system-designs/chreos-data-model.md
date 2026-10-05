@@ -6,7 +6,7 @@ Status: implemented (`tools/chreos/`). Command reference: `docs/cli/chreos/`.
 
 ## 1. Guiding principle
 
-Projects, tasks and decisions are Markdown files meant to be opened and edited by **humans and AI agents alike**, with any editor or file tool. The CLI is a convenience layer focused on the **frontmatter metadata**: creating items, changing metadata, driving the task lifecycle, archiving and deleting, and listing/searching. For task and project bodies it offers only a few simple section commands (§9); anything more complex is done by opening the file. Consequently:
+Projects, tasks and decisions are Markdown files meant to be opened and edited by **humans and AI agents alike**, with any editor or file tool. The CLI is a convenience layer focused on the **frontmatter metadata**: creating items, changing metadata, driving the task lifecycle, archiving and deleting, and listing/searching. For task, project and decision bodies it offers only a few simple section commands (§9); anything more complex is done by opening the file. Consequently:
 
 - The CLI never imposes a body structure and changes the body only in the cases listed in §8.
 - The CLI must tolerate hand edits: missing optional fields, extra unknown fields, reordered keys, YAML comments, and arbitrary body content are all valid and must be preserved.
@@ -172,7 +172,7 @@ The current hero doesn't reflect the new brand...
 
 ### 3.4 Decision files (`decisions/<name>.md`)
 
-A decision records a choice that affects the whole project: what was (or needs to be) decided, and why. The body is free-form.
+A decision records a choice that affects the whole project: what was (or needs to be) decided, and why.
 
 Additional fields:
 
@@ -183,7 +183,7 @@ Additional fields:
 
 `status` is `pending` (default: still to be made) or `decided` (made).
 
-Body: `# <title>`, the summary paragraph, then anything. A common but optional shape is context, the options considered, the choice, and its consequences.
+Suggested body: `# <title>`, the summary paragraph, `## Description`. The description is free-form; a common but optional shape is `###` subsections for the context, the options considered, the recommendation, the choice and its consequences. Anything outside `## Description` is free-form too.
 
 ```markdown
 ---
@@ -204,6 +204,8 @@ updated: 2026-09-26T09:30:00+02:00
 # Hosting provider
 
 Where the relaunched site will be hosted.
+
+## Description
 
 We compared provider A and provider B on cost, EU data residency and
 static-site support. We chose provider B: it meets residency requirements
@@ -325,7 +327,7 @@ The CLI changes a file's body only:
 
 1. at `create`, by rendering the item's template (see "Templates" below);
 2. when `update --title`/`--summary` changes the frontmatter value, it also replaces the body's H1 line or summary paragraph **only if they still match the old value exactly**. Otherwise the body is left untouched and the CLI prints a warning. The H1 is the first `# ` line outside fenced code; the summary paragraph is the paragraph right after it, unless that is a heading. Setting a summary on an item that had none inserts the paragraph after the H1 (if no paragraph is there yet); clearing it (`--summary none`) removes the paragraph if it still matches;
-3. through the section commands (§9), each of which touches only its own section. Decisions have no section commands; their bodies are edited in the file.
+3. through the section commands (§9), each of which touches only its own section.
 
 Everything else in the body is preserved byte-for-byte. The CLI **reads** the body for `--search`, `show`, the section `show` commands, the acceptance-criteria confirmation when a task becomes `done` (§10), and `check` (warnings only, e.g. H1 differs from `title`).
 
@@ -341,7 +343,7 @@ Frontmatter round-trip is non-destructive: the CLI changes only the keys a comma
 
 ## 9. Section commands
 
-Four sections of `TASK.md` and one of `PROJECT.md` get dedicated commands, each with `show`, `append` (like `>>` on a file) and `replace` (like `>`):
+Four sections of `TASK.md`, one of `PROJECT.md` and one of decision files get dedicated commands, each with `show`, `append` (like `>>` on a file) and `replace` (like `>`):
 
 | Section | Command group | Content |
 | --- | --- | --- |
@@ -350,6 +352,7 @@ Four sections of `TASK.md` and one of `PROJECT.md` get dedicated commands, each 
 | `## References` | `chreos task refs` | One `- <reference>` line per reference: a Markdown link, a bare URL, or an item reference (§3.3, §6). |
 | `## Notes` | `chreos task notes` | One `- <text>` line per note. |
 | `## Description` (project) | `chreos project description` | Free Markdown text. |
+| `## Description` (decision) | `chreos decision description` | Free Markdown text: context, options, recommendation, outcome. |
 
 Archived tasks are read-only (§7): only the `show` subcommands work on them.
 
@@ -357,6 +360,10 @@ Archived tasks are read-only (§7): only the `show` subcommands work on them.
 chreos project description show NAME
 chreos project description append NAME [TEXT]
 chreos project description replace NAME [TEXT]
+
+chreos decision description show NAME [-P PROJECT]
+chreos decision description append NAME [TEXT] [-P PROJECT]
+chreos decision description replace NAME [TEXT] [-P PROJECT]
 
 chreos task description show NAME [-P PROJECT]
 chreos task description append NAME [TEXT] [-P PROJECT]
@@ -548,7 +555,7 @@ Conventions:
 - `-n` is always `--name` (a list filter); `-N` is `--note`; `-r` is `--ref`.
 - Options that clear an optional scalar field take the value `none` (e.g. `--summary none`, `--priority none`, `--due none`, `--assignee none`).
 - `-l/--label` values may hold several comma-separated labels on `create` and `update` alike. On `update`, `--remove-label` is applied after `-l`, so a label given to both ends up removed.
-- A command that needs confirmation and runs without a terminal (e.g. called by an agent) **fails** instead of waiting for input, unless `-f` is given. `edit` fails without a terminal.
+- A command that needs confirmation and runs without a terminal (e.g. called by an agent) **fails** instead of waiting for input, unless `-f` is given. `edit` fails without a terminal, with a hint naming the group's `update` and section commands, and `path` to edit the file directly.
 - Every `list`/`show` supports `--json`; default output is human-readable. The JSON output is a stable contract for scripts and agents, documented in the reference docs:
   - `list` returns an array of objects, each with the item's frontmatter fields plus `path` (absolute path of its file);
   - `show` returns an object with `frontmatter`, `body`, `path`, and for tasks and decisions the computed `dependencies` (each with `ref`, `status`, `satisfied`) and `dependents` (§6).
@@ -797,6 +804,8 @@ chreos decision list [OPTIONS]
 chreos decision show NAME [-P PROJECT] [--json]    includes dependency statuses and dependents
 chreos decision edit NAME [-P PROJECT]
 chreos decision path NAME [-P PROJECT]
+
+chreos decision description ...     see §9
 ```
 
 Examples:

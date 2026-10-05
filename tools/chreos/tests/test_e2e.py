@@ -74,6 +74,8 @@ def test_full_workflow(home):
     ok("task", "create", "build-cli", "-P", "tooling", "--source-type", "git", "--source-path", "site", "--priority", "high")
     ok("task", "create", "cost-estimate", "-P", "web")
     ok("decision", "create", "hosting", "-P", "web", "--dep", "task:cost-estimate")
+    ok("decision", "description", "replace", "web/hosting", input="### Options\n\n- A\n- B\n")
+    assert ok("decision", "description", "show", "web/hosting").stdout == "### Options\n\n- A\n- B\n"
     ok("task", "create", "homepage", "-P", "web", "--source-type", "local", "--source-path", str(home / "files"),
        "--dep", "task:tooling/build-cli", "--dep", "decision:hosting")
     ok("task", "create", "launch", "-P", "web", "--dep", "task:homepage")

@@ -1,7 +1,5 @@
 """`chreos project` (design §12.2, §9)."""
 
-import sys
-
 import click
 
 from chreos.cli_support import CONTEXT_SETTINGS, confirmer
@@ -10,16 +8,17 @@ from chreos.commands.common import (
     emit_list,
     emit_show,
     load_context,
-    modify_body,
+    read_description,
     report_failures,
     run_edit,
+    show_description,
     status_filter,
     warn_all,
+    write_description,
 )
 from chreos.config import set_value
 from chreos.errors import ChreosError
 from chreos.frontmatter import load, save
-from chreos.inputs import read_text_argument
 from chreos.itemfields import split_labels, update_common
 from chreos.items import load_item, load_items
 from chreos.listing import SORT_KEYS, Filters
@@ -27,7 +26,7 @@ from chreos.lock import workspace_lock
 from chreos.model import Kind, ProjectStatus
 from chreos.operations import delete_project, rename_project
 from chreos.projects import create_project
-from chreos.sections import PROJECT_SECTIONS, append_text, read_section, validate_description, write_section
+from chreos.sections import PROJECT_SECTIONS
 from chreos.timestamps import now
 from chreos.workspace import Workspace
 
@@ -164,17 +163,13 @@ def description():
 def description_show(name):
     """Print the section content."""
     _, workspace = load_context()
-    content = read_section(load(_project_file(workspace, name)).body, "Description") or ""
-    if content:
-        click.echo(content)
+    show_description(_project_file(workspace, name))
 
 
 def _write_description(name: str, text: str | None, append: bool) -> None:
-    content = validate_description(read_text_argument(text, sys.stdin))
+    content = read_description(text)
     _, workspace = load_context()
-    write = append_text if append else write_section
-    modify_body(workspace, _project_file(workspace, name),
-                lambda body: write(body, "Description", content, PROJECT_SECTIONS))
+    write_description(workspace, _project_file(workspace, name), content, append, PROJECT_SECTIONS)
 
 
 @description.command(name="append")

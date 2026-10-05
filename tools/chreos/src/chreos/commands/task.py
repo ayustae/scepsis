@@ -1,6 +1,5 @@
 """`chreos task` (design §12.3, §9)."""
 
-import sys
 from datetime import date
 
 import click
@@ -13,19 +12,21 @@ from chreos.commands.common import (
     emit_list,
     load_context,
     modify_body,
+    read_description,
     report_failures,
     resolve,
     run_edit,
+    show_description,
     status_filter,
     warn_all,
+    write_description,
 )
 from chreos.frontmatter import load
-from chreos.inputs import read_text_argument
 from chreos.lifecycle import close_task, open_task
 from chreos.lists import ListKind, append_items, read_items, replace_items
 from chreos.operations import archive_task, delete_task, move_task, rename_task, restore_task
 from chreos.refs import classify_reference, validate_reference
-from chreos.sections import TASK_SECTIONS, append_text, read_section, validate_description, write_section
+from chreos.sections import TASK_SECTIONS
 from chreos.errors import ChreosError
 from chreos.graph import Graph, Node
 from chreos.items import load_item, load_items
@@ -330,17 +331,13 @@ def description():
 @PROJECT_OPTION
 def description_show(name, project_opt):
     """Print the section content."""
-    _, _, path = _section_file(name, project_opt, writing=False)
-    content = read_section(load(path).body, "Description")
-    if content:
-        click.echo(content)
+    show_description(_section_file(name, project_opt, writing=False)[2])
 
 
 def _write_description(name, project_opt, text, append):
-    content = validate_description(read_text_argument(text, sys.stdin))
+    content = read_description(text)
     workspace, _, path = _section_file(name, project_opt, writing=True)
-    write = append_text if append else write_section
-    modify_body(workspace, path, lambda body: write(body, "Description", content, TASK_SECTIONS))
+    write_description(workspace, path, content, append, TASK_SECTIONS)
 
 
 @description.command(name="append")

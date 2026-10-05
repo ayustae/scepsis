@@ -9,11 +9,14 @@ from chreos.commands.common import (
     emit_dependency_show,
     emit_list,
     load_context,
+    read_description,
     report_failures,
     resolve,
     run_edit,
+    show_description,
     status_filter,
     warn_all,
+    write_description,
 )
 from chreos.decisions import create_decision, update_decision
 from chreos.dependencies import dependency_checks
@@ -25,6 +28,7 @@ from chreos.lock import workspace_lock
 from chreos.model import DecisionStatus, Kind
 from chreos.operations import delete_decision, move_decision, rename_decision
 from chreos.refs import parse_ref
+from chreos.sections import DECISION_SECTIONS
 from chreos.workspace import Workspace
 
 STATUSES = click.Choice([status.value for status in DecisionStatus])
@@ -195,3 +199,44 @@ def path(name, project_opt):
     """Print the absolute path of a decision file."""
     _, workspace, project, name = resolve(name, project_opt)
     click.echo(_decision_file(workspace, project, name))
+
+
+# Sections (§9)
+
+
+@decision.group(context_settings=CONTEXT_SETTINGS)
+def description():
+    """Show or change a decision's ## Description section."""
+
+
+@description.command(name="show")
+@click.argument("name")
+@PROJECT_OPTION
+def description_show(name, project_opt):
+    """Print the section content."""
+    _, workspace, project, name = resolve(name, project_opt)
+    show_description(_decision_file(workspace, project, name))
+
+
+def _write_description(name, project_opt, text, append):
+    content = read_description(text)
+    _, workspace, project, name = resolve(name, project_opt)
+    write_description(workspace, _decision_file(workspace, project, name), content, append, DECISION_SECTIONS)
+
+
+@description.command(name="append")
+@click.argument("name")
+@click.argument("text", required=False)
+@PROJECT_OPTION
+def description_append(name, text, project_opt):
+    """Add TEXT (or standard input) after the existing content."""
+    _write_description(name, project_opt, text, append=True)
+
+
+@description.command(name="replace")
+@click.argument("name")
+@click.argument("text", required=False)
+@PROJECT_OPTION
+def description_replace(name, text, project_opt):
+    """Replace the content with TEXT (or standard input); empty text clears it."""
+    _write_description(name, project_opt, text, append=False)

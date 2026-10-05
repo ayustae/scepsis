@@ -16,6 +16,7 @@ from chreos.markdown import has_unclosed_fence, newline_of, unfenced
 
 TASK_SECTIONS = ("Description", "Acceptance criteria", "References", "Notes")
 PROJECT_SECTIONS = ("Description",)
+DECISION_SECTIONS = ("Description",)
 H1_OR_H2 = re.compile(r"#{1,2}(\s|$)")
 
 

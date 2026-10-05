@@ -17,7 +17,7 @@ def runner():
 
 
 def test_version_is_read_from_package_metadata():
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.2.0"
 
 
 @pytest.mark.parametrize("flag", ["-V", "--version"])

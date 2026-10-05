@@ -18,7 +18,7 @@
   - `templates.py` + `templates/`: rendering new items; `templates/*.md` are copies of the repository `templates/` (kept identical by a test).
   - `body.py`: H1/summary sync on title/summary changes.
   - `markdown.py`: fenced-code-aware line scanning (`unfenced`, `has_unclosed_fence`) and newline detection; use it for any body parsing.
-  - `sections.py`: locate/read/write one `## <heading>` section (§9), missing-section placement, description validation.
+  - `sections.py`: locate/read/write one `## <heading>` section (§9), missing-section placement, description validation. `TASK_SECTIONS`, `PROJECT_SECTIONS` and `DECISION_SECTIONS` give each item type's section order.
   - `lists.py`: list-item reading/appending/replacing within a section (acceptance criteria, references, notes).
   - `inputs.py`: TEXT argument or stdin (refuses to wait on a terminal).
 - Workspace modules:
@@ -35,7 +35,7 @@
   - `config.py`: `load_config()` → typed `Config` (workspace, default project, source `bases`, output format); `get_value`/`set_value` for known keys only; `render_new_config` for `init`.
   - `projects.py`: `create_project`.
   - `cli_support.py`: `ChreosGroup` (ChreosError/OSError → exit 1), `confirmer(force)`, `warn`, `wants_json`/`emit_json`, `CONTEXT_SETTINGS`.
-  - Item-command layer (shared by project/task/decision): `itemfields.py` (title/summary/labels/status updates with H1 sync), `listing.py` (filters, sorting), `output.py` (JSON shapes: a stable contract, change deliberately), `editing.py` (`edit` flow and `file_checks`), `commands/common.py` (context, `resolve` for NAME/`-P`, `PROJECT_OPTION`, list/show/edit helpers, `emit_dependency_show`, `modify_body`).
+  - Item-command layer (shared by project/task/decision): `itemfields.py` (title/summary/labels/status updates with H1 sync), `listing.py` (filters, sorting), `output.py` (JSON shapes: a stable contract, change deliberately), `editing.py` (`edit` flow and `file_checks`), `commands/common.py` (context, `resolve` for NAME/`-P`, `PROJECT_OPTION`, list/show/edit helpers, `emit_dependency_show`, `modify_body`, and `show_description`/`read_description`/`write_description` shared by the three `description` groups).
   - `tasks.py`: task rules for create/update (sources, priority/due/assignee, dependencies, confirmations), `set_assignee`, `task_checks` for `edit`, `task_predicate` for the task-only list filters. NAME/`-P` resolution is `Workspace.resolve_item_name` (commands use `commands/common.resolve`).
   - `dependencies.py`: dependency add/remove (by target) and `edit` checks, shared by tasks and decisions. `decisions.py`: decision create/update rules.
   - `check.py`: `check_workspace` (layout, files, uniqueness, archive state, dependencies, lifecycle, references → `Finding`s with error/warning severity) and `fix_caches`.

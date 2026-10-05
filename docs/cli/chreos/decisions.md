@@ -1,6 +1,6 @@
 # chreos — `chreos decision`
 
-Reference for the `chreos decision` commands: creating, changing, listing, showing, editing, renaming, moving and deleting decisions. Shared conventions (NAME forms, `-P`, references, `-f`, output, exit codes) are in `README.md`; the file format is in `files.md`.
+Reference for the `chreos decision` commands: creating, changing, listing, showing, editing, renaming, moving and deleting decisions, and the section commands (`description`). Shared conventions (NAME forms, `-P`, references, `-f`, output, exit codes) are in `README.md`; the file format is in `files.md`.
 
 All commands taking NAME accept `-P`, `--project`.
 
@@ -46,6 +46,30 @@ chreos decision show NAME [-P|--project PROJECT] [--json]
 ```
 
 Prints the file, then a `Dependencies:` block (each reference with its status and `satisfied`/`unsatisfied`) and a `Dependents:` block (items that depend on this one). `--json` includes them as `dependencies` and `dependents`.
+
+## `chreos decision description show`
+
+```
+chreos decision description show NAME [-P|--project PROJECT]
+```
+
+Prints the content of `## Description`, where a decision's context, options, recommendation and outcome go.
+
+## `chreos decision description append`
+
+```
+chreos decision description append NAME [TEXT] [-P|--project PROJECT]
+```
+
+Adds TEXT (or standard input) after the existing content, separated by a blank line. No `# `/`## ` heading lines or unclosed code fences; `###` and deeper are fine (e.g. `### Context`, `### Options`, `### Recommendation`, `### Decision`). A missing section is recreated at the end of the body.
+
+## `chreos decision description replace`
+
+```
+chreos decision description replace NAME [TEXT] [-P|--project PROJECT]
+```
+
+Replaces the content with TEXT (or standard input); empty text clears it.
 
 ## `chreos decision edit`
 

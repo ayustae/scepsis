@@ -48,7 +48,7 @@ Prints `PROJECT.md` as it is; `--json` prints frontmatter, body and path.
 chreos project edit NAME
 ```
 
-Opens `PROJECT.md` in `$VISUAL`/`$EDITOR` (needs a terminal) and validates it afterwards: unchanged → problems shown as warnings; changed and valid → `updated` bumped; changed but unparseable → left as saved, exit `1`; changed with validation errors → `updated` bumped, errors shown, exit `1`. The edit is never reverted.
+Opens `PROJECT.md` in `$VISUAL`/`$EDITOR` and validates it afterwards. Without a terminal it fails with a hint to use the `update` and section commands of the same group, or `path` to edit the file directly. After the editor exits: unchanged → problems shown as warnings; changed and valid → `updated` bumped; changed but unparseable → left as saved, exit `1`; changed with validation errors → `updated` bumped, errors shown, exit `1`. The edit is never reverted.
 
 ## `chreos project path`
 

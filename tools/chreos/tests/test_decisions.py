@@ -31,7 +31,7 @@ class TestCreate:
         meta = load(path).meta
         assert (meta["title"], meta["status"], meta["project"]) == ("Hosting", "decided", "p")
         assert list(meta["dependencies"]) == ["task:research"] and list(meta["labels"]) == ["area=infra"]
-        assert load(path).body == "\n# Hosting\n\nWhere to host.\n\n"
+        assert load(path).body == "\n# Hosting\n\nWhere to host.\n\n## Description\n\n"
 
     def test_defaults(self, p):
         meta = load(create(p, "p", "d")).meta

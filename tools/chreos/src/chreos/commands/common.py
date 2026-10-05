@@ -1,6 +1,7 @@
 """Helpers shared by the item command groups (project, task, decision)."""
 
-from collections.abc import Callable, Iterable
+import sys
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 
 import click
@@ -11,11 +12,13 @@ from chreos.config import Config, load_config
 from chreos.editing import Checks, edit_item
 from chreos.errors import ChreosError
 from chreos.frontmatter import load, save
+from chreos.inputs import read_text_argument
 from chreos.items import LoadedItem, LoadFailure
 from chreos.listing import Filters, filter_items, sort_items
 from chreos.lock import workspace_lock
 from chreos.model import Kind
 from chreos.output import list_entry, show_entry, table
+from chreos.sections import append_text, read_section, validate_description, write_section
 from chreos.timestamps import now
 from chreos.workspace import Workspace
 
@@ -65,7 +68,10 @@ def emit_show(config: Config, item: LoadedItem, as_json: bool, extra: dict | Non
 
 def run_edit(path: Path, kind: Kind, workspace: Workspace, extra_checks: Checks | None = None) -> None:
     if not cli_support.is_interactive():
-        raise ChreosError("edit needs a terminal; use 'path' to get the file and edit it directly")
+        raise ChreosError(
+            f"edit needs a terminal; use 'chreos {kind} update' and the section commands "
+            f"(see 'chreos {kind} --help'), or 'path' to get the file and edit it directly"
+        )
     result = edit_item(path, kind, workspace.root, extra_checks=extra_checks)
     warn_all(result.warnings)
     if result.errors:
@@ -86,6 +92,24 @@ def modify_body(workspace: Workspace, path: Path, fn: Callable[[str], str]) -> N
         doc.body = fn(doc.body)
         doc.meta["updated"] = now()
         save(path, doc)
+
+
+def show_description(path: Path) -> None:
+    """`description show`: the raw `## Description` content, nothing if empty or missing."""
+    content = read_section(load(path).body, "Description")
+    if content:
+        click.echo(content)
+
+
+def read_description(text: str | None) -> str:
+    """The TEXT argument or standard input, validated as description content (§9)."""
+    return validate_description(read_text_argument(text, sys.stdin))
+
+
+def write_description(workspace: Workspace, path: Path, content: str, append: bool, order: Sequence[str]) -> None:
+    """`description append|replace` on an item whose sections follow `order`."""
+    write = append_text if append else write_section
+    modify_body(workspace, path, lambda body: write(body, "Description", content, order))
 
 
 def resolve(text: str, project_opt: str | None) -> tuple[Config, Workspace, str, str]:

@@ -125,4 +125,5 @@ class TestReading:
         assert run("task", "path", "web/nope").exit_code == 1
 
     def test_edit_requires_terminal(self):
-        assert run("task", "edit", "web/late").exit_code == 1
+        result = run("task", "edit", "web/late")
+        assert result.exit_code == 1 and "see 'chreos task --help'" in result.stderr

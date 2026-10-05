@@ -93,7 +93,12 @@ def test_no_summary_means_null_and_no_paragraph(kind):
 
 def test_decision_without_summary():
     doc = render(Kind.DECISION, name="a", project="p", timestamp=WHEN)
-    assert doc.body == "\n# a\n\n"
+    assert doc.body == "\n# a\n\n## Description\n\n"
+
+
+def test_decision_has_a_description_section():
+    doc = render(Kind.DECISION, name="a", project="p", summary="Why.", timestamp=WHEN)
+    assert doc.body == "\n# a\n\nWhy.\n\n## Description\n\n"
 
 
 def test_special_characters_stay_valid_yaml():

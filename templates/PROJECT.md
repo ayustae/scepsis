@@ -2,10 +2,8 @@
 name: <name>
 title: <title>
 summary: <summary>
-project: <project>
-status: pending
+status: active
 labels: []
-dependencies: []
 created: <timestamp>
 updated: <timestamp>
 ---

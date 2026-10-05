@@ -3,7 +3,12 @@ name: <name>
 title: <title>
 summary: <summary>
 project: <project>
-status: pending
+phase: closed
+status: new
+source: null
+priority: null
+due: null
+assignee: null
 labels: []
 dependencies: []
 created: <timestamp>
@@ -15,4 +20,10 @@ updated: <timestamp>
 <summary>
 
 ## Description
+
+## Acceptance criteria
+
+## References
+
+## Notes
 
