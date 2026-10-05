@@ -1,3 +1,3 @@
 # Scepsis
 
-@../AGENTS.md
+@AGENTS.md
