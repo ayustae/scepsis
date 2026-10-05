@@ -208,13 +208,13 @@ Findings are sorted errors first, then by path. The text output is a table (seve
 
 ## 9. AI integration (later)
 
-Not part of the CLI design, recorded here so the CLI serves it: a hook, skill or prompt runs `idion list --depth N` at the start of a session and puts the output in the AI's context, together with a short instruction on how to read (`idion show` or the file itself) and expand (`idion list <folder>/`) entries. The skill will also tell the AI when and how to record new context with `create`, `append` and `update`. This is designed separately, once the CLI exists.
+Not part of the CLI design, recorded here so the CLI serves it: a hook, skill or prompt runs `idion list --depth N` at the start of a session and puts the output in the AI's context, together with a short instruction on how to read (`idion show` or the file itself) and expand (`idion list <folder>/`) entries. The `context` skill (`skills/context/`) loads that listing when it isn't already in context, and tells the AI when and how to record new context with `create`, `append` and `update`. A hook that loads the listing at session start is still to be designed.
 
 ## 10. Out of scope
 
 Not planned for v1:
 
-- Hooks, skills and prompts (§9); designed separately.
+- Hooks and prompts (§9); designed separately. The skill is `skills/context/`.
 - Search indexes, embeddings or any search beyond the case-insensitive substring match of `list -S` and `search`.
 - Versioning or syncing the tree. Users may keep it under git themselves (`.git/` is ignored, §2).
 - Templates for context files.
