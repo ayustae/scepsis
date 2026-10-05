@@ -115,7 +115,7 @@ Additional fields:
 Suggested body: `# <title>`, the summary paragraph, then:
 
 - `## Description` — what and why.
-- `## Acceptance criteria` — a GFM checkable task list (`- [ ]` / `- [x]`), one criterion per line, ticked by hand as criteria are verified.
+- `## Acceptance criteria` — a GFM checkable task list (`- [ ]` / `- [x]`), one criterion per line, ticked (with `task ac check`, §9) as criteria are verified.
 - `## References` — links and pointers relevant to the task, one bullet per reference (§9): a Markdown link (`- [text](url-or-path)`), a bare URL (`- https://…`), or an item reference (`- task:migrate-cms`, `- decision:other-project/hosting`, §6).
 - `## Notes` — a plain bullet list where humans and agents record progress, findings, and hand-off context.
 
@@ -343,7 +343,7 @@ Frontmatter round-trip is non-destructive: the CLI changes only the keys a comma
 
 ## 9. Section commands
 
-Four sections of `TASK.md`, one of `PROJECT.md` and one of decision files get dedicated commands, each with `show`, `append` (like `>>` on a file) and `replace` (like `>`):
+Four sections of `TASK.md`, one of `PROJECT.md` and one of decision files get dedicated commands, each with `show`, `append` (like `>>` on a file) and `replace` (like `>`); acceptance criteria also have `check` and `uncheck`:
 
 | Section | Command group | Content |
 | --- | --- | --- |
@@ -372,6 +372,8 @@ chreos task description replace NAME [TEXT] [-P PROJECT]
 chreos task ac show NAME [-P PROJECT] [--json]
 chreos task ac append NAME (-a|--ac|--acceptance-criteria TEXT)... [-P PROJECT]
 chreos task ac replace NAME (-a|--ac|--acceptance-criteria TEXT)... [-P PROJECT]
+chreos task ac check NAME INDEX... [-P PROJECT]
+chreos task ac uncheck NAME INDEX... [-P PROJECT]
 
 chreos task refs show NAME [-P PROJECT] [--json]
 chreos task refs append NAME (-r|--ref TEXT)... [-P PROJECT]
@@ -409,7 +411,7 @@ Rules:
 - **Text input for `description`** (task and project): the TEXT argument, or standard input when TEXT is omitted, which makes heredocs (`<<'EOF' ... EOF`) and pipes work. If TEXT is omitted and stdin is a terminal, the command fails with a usage hint.
 - **Description content** must not contain H1 or H2 heading lines (`# ` or `## `) or an unclosed code fence, because they would break section boundaries; H3 and deeper, and any heading-like line inside a fenced code block, are fine. `description replace` with empty text clears the section. `append` adds the text after the existing content, separated by a blank line.
 - **Acceptance criteria, references and notes** are single-line strings, one per repeated option; values containing line breaks are rejected. At least one value is required.
-- `ac replace` rewrites the whole list, with every criterion unchecked. `refs replace` and `notes replace` rewrite the whole list. Ticking criteria (`- [x]`), reordering and other fine-grained edits are done by hand in the file.
+- `ac replace` rewrites the whole list, with every criterion unchecked. `refs replace` and `notes replace` rewrite the whole list. `ac check` and `ac uncheck` tick and untick criteria by their 1-based position in the list (as `ac show` prints it), changing only the marker; every position is validated before anything is written. Reordering and other fine-grained edits are done by hand in the file.
 - **References** must each be a Markdown link (`[text](target)`), a URL (`scheme://…`), or a prefixed item reference (§6); anything else is rejected, with the same hint as for dependencies when it looks like an unprefixed item name. Item references must resolve (§6).
 - **Locating sections:** by an exact H2 heading match (`## Description`, `## Acceptance criteria`, `## References`, `## Notes`) at the start of a line, ignoring lines inside fenced code blocks. A section runs until the next H2 or the end of the file. For `ac`, `refs` and `notes`, only list items (`- [ ]`, `- [x]`, `- `) are read and written; other lines in the section are preserved.
 - **Missing sections:** `append` and `replace` recreate a missing section in its template position: after the nearest preceding section of the template order (Description, Acceptance criteria, References, Notes for tasks) that exists; if none precedes it, before the nearest following one; if none of them exists, at the end of the file.

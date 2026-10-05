@@ -118,3 +118,21 @@ def map_items(body: str, heading: str, kind: ListKind, fn) -> str:
             prefix = content[: match.start(match.lastindex)]
             lines[index] = prefix + result + line[len(content) :]
     return "".join(lines)
+
+
+def set_checked(body: str, heading: str, indexes: Sequence[int], checked: bool) -> str:
+    """Check or uncheck the acceptance criteria at the 1-based `indexes`; only the marker changes.
+
+    Every index is validated before anything changes. Items already in that state are left alone.
+    """
+    lines = body.splitlines(keepends=True)
+    items = _item_indices(lines, heading, ListKind.CHECKLIST) or []
+    for index in indexes:
+        if not 1 <= index <= len(items):
+            raise ChreosError(f"no acceptance criterion {index}: the task has {len(items)}")
+    marker = "x" if checked else " "
+    for index in indexes:
+        line = lines[items[index - 1]]
+        if _parse(ListKind.CHECKLIST, line).checked != checked:
+            lines[items[index - 1]] = f"{line[:3]}{marker}{line[4:]}"
+    return "".join(lines)

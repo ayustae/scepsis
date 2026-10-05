@@ -189,7 +189,7 @@ Prints the acceptance criteria as `- [ ] …` / `- [x] …` lines; `--json` as `
 chreos task ac append NAME (-a TEXT)... [-P|--project PROJECT]
 ```
 
-Adds unchecked criteria after the last one. `-a`, `--ac`, `--acceptance-criteria`: repeatable, at least one, single line each. Ticking criteria is done by hand in the file.
+Adds unchecked criteria after the last one. `-a`, `--ac`, `--acceptance-criteria`: repeatable, at least one, single line each. Ticking criteria is done with `ac check`.
 
 ## `chreos task ac replace`
 
@@ -198,6 +198,22 @@ chreos task ac replace NAME (-a TEXT)... [-P|--project PROJECT]
 ```
 
 Replaces all criteria with the given ones, all unchecked. `-a`, `--ac`, `--acceptance-criteria` as for `append`. Other lines in the section are kept.
+
+## `chreos task ac check`
+
+```
+chreos task ac check NAME INDEX... [-P|--project PROJECT]
+```
+
+Checks (`- [x]`) the criteria at the given 1-based positions, as `ac show` lists them; at least one INDEX. Only the marker changes, and a criterion already checked is left as is. Every INDEX is validated first: a position outside the list fails (`no acceptance criterion 4: the task has 3`) and nothing is written.
+
+## `chreos task ac uncheck`
+
+```
+chreos task ac uncheck NAME INDEX... [-P|--project PROJECT]
+```
+
+Unchecks (`- [ ]`) the criteria at the given positions, with the same rules as `ac check`.
 
 ## `chreos task refs show`
 

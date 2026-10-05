@@ -1,9 +1,12 @@
 import json
+from datetime import datetime, timezone
 
 import pytest
 
-from chreos.frontmatter import load
+from chreos.frontmatter import load, save
 from conftest import run_cli as run
+
+OLD = datetime(2000, 1, 1, tzinfo=timezone.utc)
 
 
 def ok(*args, input=None):
@@ -71,3 +74,38 @@ def test_show_works_on_archived_tasks(task, cli_home):
     ok("task", "archive", "t")
     assert ok("task", "notes", "show", "t").output == "- kept\n"
     assert run("task", "notes", "append", "t", "-N", "x").exit_code == 1
+    result = run("task", "ac", "check", "t", "1")
+    assert result.exit_code == 1 and "archived" in result.stderr
+
+
+def test_check_and_uncheck_criteria(task):
+    ok("task", "ac", "append", "t", "-a", "One", "-a", "Two", "-a", "Three")
+    doc = load(task)
+    doc.meta["updated"] = OLD
+    save(task, doc)
+    ok("task", "ac", "check", "t", "1", "3")
+    assert ok("task", "ac", "show", "t").output == "- [x] One\n- [ ] Two\n- [x] Three\n"
+    assert load(task).meta["updated"] > OLD
+    ok("task", "ac", "uncheck", "default/t", "3")
+    data = json.loads(ok("task", "ac", "show", "t", "--json").output)
+    assert [entry["checked"] for entry in data] == [True, False, False]
+
+
+def test_check_errors_leave_the_file_alone(task):
+    ok("task", "ac", "append", "t", "-a", "One")
+    before = task.read_text()
+    result = run("task", "ac", "check", "t", "1", "2")
+    assert result.exit_code == 1 and "no acceptance criterion 2: the task has 1" in result.stderr
+    assert run("task", "ac", "check", "t", "one").exit_code == 2
+    assert run("task", "ac", "check", "t").exit_code == 2
+    assert task.read_text() == before
+
+
+def test_checked_criteria_let_the_task_close_without_confirmation(task, cli_home, tmp_path):
+    ok("task", "ac", "append", "t", "-a", "One")
+    ok("task", "update", "t", "--source-type", "local", "--source-path", str(tmp_path))
+    ok("task", "open", "t")
+    result = run("task", "close", "t", "--status", "done")
+    assert result.exit_code == 1 and "1 unchecked acceptance criterion" in result.stderr
+    ok("task", "ac", "check", "t", "1")
+    ok("task", "close", "t", "--status", "done")

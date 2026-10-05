@@ -108,8 +108,7 @@ def test_full_workflow(home):
     git(work, "commit", "-q", "-m", "cli")
     (ws / "tooling/tasks/build-cli/work/scratch.txt").write_text("tmp")
     fails("task", "close", "tooling/build-cli", "--status", "done", contains="2 unchecked acceptance criteria")
-    task_file = ws / "tooling/tasks/build-cli/TASK.md"
-    task_file.write_text(task_file.read_text().replace("- [ ] ", "- [x] "))
+    ok("task", "ac", "check", "tooling/build-cli", "1", "2")
     fails("task", "close", "tooling/build-cli", "--status", "done", contains="scratch.txt")
     assert (ws / "tooling/tasks/build-cli/work/scratch.txt").exists()
     ok("task", "close", "tooling/build-cli", "--status", "done", "-f")

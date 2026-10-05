@@ -19,7 +19,7 @@
   - `body.py`: H1/summary sync on title/summary changes.
   - `markdown.py`: fenced-code-aware line scanning (`unfenced`, `has_unclosed_fence`) and newline detection; use it for any body parsing.
   - `sections.py`: locate/read/write one `## <heading>` section (§9), missing-section placement, description validation. `TASK_SECTIONS`, `PROJECT_SECTIONS` and `DECISION_SECTIONS` give each item type's section order.
-  - `lists.py`: list-item reading/appending/replacing within a section (acceptance criteria, references, notes).
+  - `lists.py`: list-item reading/appending/replacing within a section (acceptance criteria, references, notes), and `set_checked` for ticking criteria.
   - `inputs.py`: TEXT argument or stdin (refuses to wait on a terminal).
 - Workspace modules:
   - `workspace.py`: `Workspace(root)`: layout paths (names validated before use), discovery, uniqueness, `parse_item_name`, `resolve(ref)`.

@@ -23,7 +23,7 @@ from chreos.commands.common import (
 )
 from chreos.frontmatter import load
 from chreos.lifecycle import close_task, open_task
-from chreos.lists import ListKind, append_items, read_items, replace_items
+from chreos.lists import ListKind, append_items, read_items, replace_items, set_checked
 from chreos.operations import archive_task, delete_task, move_task, rename_task, restore_task
 from chreos.refs import classify_reference, validate_reference
 from chreos.sections import TASK_SECTIONS
@@ -414,6 +414,24 @@ ac = _list_section(
     "A criterion; repeatable. replace writes them all unchecked.",
     lambda item: {"text": item.text, "checked": item.checked},
 )
+
+
+def _checker(checked: bool):
+    @click.argument("name")
+    @click.argument("indexes", metavar="INDEX...", nargs=-1, required=True, type=int)
+    @PROJECT_OPTION
+    def command(name, indexes, project_opt):
+        workspace, _, path = _section_file(name, project_opt, writing=True)
+        modify_body(workspace, path, lambda body: set_checked(body, "Acceptance criteria", indexes, checked))
+
+    verb = "Check" if checked else "Uncheck"
+    command.__doc__ = f"{verb} the criteria at the 1-based positions INDEX..., as 'ac show' lists them."
+    return command
+
+
+ac.command(name="check")(_checker(checked=True))
+ac.command(name="uncheck")(_checker(checked=False))
+
 refs = _list_section(
     "refs", "References", ListKind.BULLETS, ("-r", "--ref"), "TEXT",
     "A Markdown link, a URL or an item reference; repeatable.",

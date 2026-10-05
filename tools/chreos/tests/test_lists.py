@@ -7,6 +7,7 @@ from chreos.lists import (
     append_items,
     read_items,
     replace_items,
+    set_checked,
     validate_items,
 )
 from chreos.sections import TASK_SECTIONS, read_section
@@ -161,3 +162,36 @@ class TestMapItems:
         from chreos.lists import map_items
 
         assert map_items("## Notes\r\n- a\r\n", "Notes", BULLETS, lambda t: "b") == "## Notes\r\n- b\r\n"
+
+
+class TestSetChecked:
+    def test_checks_and_unchecks_by_position(self):
+        body = set_checked(AC, "Acceptance criteria", [2], True)
+        assert [i.checked for i in read_items(body, "Acceptance criteria", CHECK)] == [True, True, True]
+        body = set_checked(body, "Acceptance criteria", [1, 3], False)
+        assert [i.checked for i in read_items(body, "Acceptance criteria", CHECK)] == [False, True, False]
+        assert "- [ ] upper checked\n" in body
+
+    def test_only_the_marker_changes(self):
+        body = set_checked(AC, "Acceptance criteria", [2], True)
+        assert body == AC.replace("- [ ] open one", "- [x] open one")
+        assert "-  [ ] not an item" in body and "- [ ] fenced" in body
+
+    def test_already_in_state_is_unchanged(self):
+        assert set_checked(AC, "Acceptance criteria", [1, 3], True) == AC
+        assert set_checked(AC, "Acceptance criteria", [2], False) == AC
+
+    def test_crlf(self):
+        body = "## Acceptance criteria\r\n\r\n- [ ] a\r\n- [ ] b\r\n"
+        assert set_checked(body, "Acceptance criteria", [2], True) == "## Acceptance criteria\r\n\r\n- [ ] a\r\n- [x] b\r\n"
+
+    @pytest.mark.parametrize("index", [0, -1, 4])
+    def test_out_of_range(self, index):
+        with pytest.raises(ChreosError, match=f"no acceptance criterion {index}: the task has 3"):
+            set_checked(AC, "Acceptance criteria", [1, index], True)
+
+    def test_no_criteria(self):
+        with pytest.raises(ChreosError, match="no acceptance criterion 1: the task has 0"):
+            set_checked(TEMPLATE, "Acceptance criteria", [1], True)
+        with pytest.raises(ChreosError, match="the task has 0"):
+            set_checked("\n# T\n", "Acceptance criteria", [1], True)
