@@ -5,6 +5,7 @@ from datetime import date, datetime
 
 from idion.files import LoadedFile
 from idion.listing import FOLDER, Entry
+from idion.search import Match
 from idion.tree import ERROR, Finding
 
 
@@ -48,6 +49,22 @@ def list_entry(entry: Entry) -> dict:
     if entry.files is not None:
         data["files"] = entry.files
     return data
+
+
+def search_lines(match: Match) -> list[str]:
+    """`search`: `<id> — <description>`, then `  <line>: <text>` per matching body line."""
+    description = match.description if match.description is not None else "(invalid description)"
+    return [f"{match.id} — {description}", *(f"  {line.number}: {line.text}" for line in match.lines)]
+
+
+def search_entry(match: Match) -> dict:
+    """One `search --json` entry."""
+    return {
+        "id": str(match.id),
+        "path": str(match.path),
+        "description": match.description,
+        "lines": [{"line": line.number, "text": line.text} for line in match.lines],
+    }
 
 
 def sorted_findings(findings: Iterable[Finding]) -> list[Finding]:

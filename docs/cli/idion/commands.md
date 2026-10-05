@@ -1,6 +1,6 @@
 # idion — Commands
 
-Reference for the idion commands on the context tree and its files: `init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit`, `move` and `delete`. Folder descriptions are in `folders.md` and validation in `check.md`. Shared conventions (identifiers, text input, output, exit codes, lock) are in `README.md`; the file format is in `files.md`.
+Reference for the idion commands on the context tree and its files: `init`, `create`, `show`, `list`, `search`, `update`, `append`, `replace`, `edit`, `move` and `delete`. Folder descriptions are in `folders.md` and validation in `check.md`. Shared conventions (identifiers, text input, output, exit codes, lock) are in `README.md`; the file format is in `files.md`.
 
 ## `idion init`
 
@@ -55,6 +55,26 @@ user — The user: role, background, working preferences.
 - `--json`: see `json-output.md`.
 
 A file with a missing or invalid description is shown as `<id> — (invalid description)`; a collapsed folder without `_index.md` as `<id> — (no description) (N files)`. If the context tree has problems under PREFIX, one line `warning: N problems in the context tree; run 'idion check'` goes to standard error; the exit code stays `0`.
+
+## `idion search`
+
+```
+idion search TEXT [PREFIX] [--json]
+```
+
+Lists the context files whose identifier, description or body contains TEXT, in any case, sorted by identifier. Each file is printed as in `list` (`<id> — <description>`), followed by every body line that contains TEXT, indented, with its line number in the file:
+
+```
+$ idion search ingestion
+teams/ingestion — The ingestion squad.
+teams/other-team — Other team: members, what they own.
+  7: - Owns the ingestion pipelines since 2026-09.
+```
+
+- `PREFIX`: a folder identifier (`teams/`); default `/`. The folder must exist.
+- `--json`: see `json-output.md`.
+
+Folder descriptions (`_index.md`) aren't searched. A file whose frontmatter can't be parsed is searched as plain text, every line; a file that isn't valid UTF-8 is skipped. Blank TEXT is an error. As with `list`, problems under PREFIX print one warning line on standard error, and the exit code is `0`, also when nothing matches.
 
 ## `idion update`
 

@@ -115,6 +115,8 @@ user — The user: role, background, working preferences.
 - If the scan finds problems under the prefix, `list` prints a single `warning: N problems in the context tree; run 'idion check'` line on stderr and still exits `0`; stdout carries only the listing, so hooks can use it as is.
 - This listing (text or `--json`) is what the future hook or skill loads into the AI's context (§9). Collapsing lets a large tree start as a short list that the AI expands with `idion list <folder>/` when it needs to.
 
+`search TEXT [PREFIX]` complements `list -S`: it also matches bodies, and prints each matching body line with its line number in the file, so an AI can tell where a fact already lives before adding it, without opening every candidate file. It is a plain scan, no index.
+
 **Why folder descriptions:** without them, the up-front listing grows with every file. With them, the user chooses how much detail the AI sees first.
 
 ## 6. CLI interface
@@ -148,6 +150,9 @@ idion list [PREFIX] [OPTIONS]           list identifiers and descriptions (§5)
   --folders                             also list described folders
   -S, --search TEXT                     case-insensitive substring match on id and description
   --json
+
+idion search TEXT [PREFIX] [--json]     files whose id, description or body contains TEXT,
+                                        with the matching body lines and their line numbers
 
 idion update ID -d DESC                 change a file's description
 idion append ID -t TEXT                 append a paragraph to a file's body ('-' reads stdin)
@@ -210,7 +215,7 @@ Not part of the CLI design, recorded here so the CLI serves it: a hook, skill or
 Not planned for v1:
 
 - Hooks, skills and prompts (§9); designed separately.
-- Search indexes, embeddings or any content search beyond `list -S` on ids and descriptions.
+- Search indexes, embeddings or any search beyond the case-insensitive substring match of `list -S` and `search`.
 - Versioning or syncing the tree. Users may keep it under git themselves (`.git/` is ignored, §2).
 - Templates for context files.
 - Several context roots, or per-project context trees.

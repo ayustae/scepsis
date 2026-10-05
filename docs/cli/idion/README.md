@@ -8,7 +8,7 @@ Reference documentation for `idion`, the Scepsis user context CLI (`tools/idion/
 | --- | --- |
 | `README.md` | This index, the root command and the conventions shared by all commands |
 | `files.md` | The context tree, context files, folder descriptions (`_index.md`) and the file format |
-| `commands.md` | `idion init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit`, `move`, `delete` |
+| `commands.md` | `idion init`, `create`, `show`, `list`, `search`, `update`, `append`, `replace`, `edit`, `move`, `delete` |
 | `folders.md` | `idion folder describe`, `idion folder show` |
 | `check.md` | `idion check` |
 | `json-output.md` | The JSON shapes printed by `--json`: a stable contract for scripts and agents |
@@ -21,7 +21,7 @@ idion [-h|--help] [-V|--version] COMMAND [ARGS]...
 
 `-V`/`--version` prints `idion <version>`. `-h`/`--help` works on every command and group. Running `idion` or `idion folder` without a subcommand prints its help and exits with `2`.
 
-Commands: `init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit`, `move`, `delete` (see `commands.md`), `folder` (see `folders.md`), `check` (see `check.md`).
+Commands: `init`, `create`, `show`, `list`, `search`, `update`, `append`, `replace`, `edit`, `move`, `delete` (see `commands.md`), `folder` (see `folders.md`), `check` (see `check.md`).
 
 ## Conventions
 
@@ -33,7 +33,7 @@ Commands: `init`, `create`, `show`, `list`, `update`, `append`, `replace`, `edit
 
 **Confirmations and `-f/--force`.** `delete` asks before deleting. `-f` answers yes. Without a terminal and without `-f`, it fails instead of waiting for an answer (`confirmation required: run in a terminal or pass -f`), which keeps agents and scripts from hanging. Declining exits with `1` (`cancelled`).
 
-**Output.** Results go to standard output; warnings (`warning: …`) and errors (`Error: …`) go to standard error. Commands that write print the path of the file they wrote. `show`, `list`, `folder show` and `check` accept `--json`; the shapes are documented in `json-output.md`.
+**Output.** Results go to standard output; warnings (`warning: …`) and errors (`Error: …`) go to standard error. Commands that write print the path of the file they wrote. `show`, `list`, `search`, `folder show` and `check` accept `--json`; the shapes are documented in `json-output.md`.
 
 **Exit codes.** `0` success; `1` user or validation error (not found, invalid value, refused or unconfirmed operation, `check` found errors); `2` usage error (unknown command or option, missing argument or required option).
 

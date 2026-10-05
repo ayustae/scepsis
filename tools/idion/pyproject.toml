@@ -1,6 +1,6 @@
 [project]
 name = "idion"
-version = "0.2.0"
+version = "0.3.0"
 description = "User context manager CLI of the Scepsis framework."
 readme = "README.md"
 license = "MIT"

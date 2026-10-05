@@ -21,6 +21,7 @@ idion create teams/my-team -d "My team: members and rituals." -b - <<'EOF'
 EOF
 idion folder describe teams/ -d "My team and the other teams in the department."
 idion list --depth 1          # what an AI loads first: '<id> — <description>' lines
+idion search ingestion        # files mentioning it, with the matching lines
 idion show teams/my-team
 idion append user -t "Prefers concise answers."
 idion replace user -b - <<'EOF'   # rewrite the whole body

@@ -5,7 +5,7 @@ from idion.cli import main
 
 
 def test_version_is_read_from_package_metadata():
-    assert __version__ == "0.2.0"
+    assert __version__ == "0.3.0"
 
 
 @pytest.mark.parametrize("flag", ["-V", "--version"])
